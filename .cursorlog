@@ -1,0 +1,163 @@
+# Cursor 操作日志
+
+---
+
+## [2026-03-03] Cursor Rules 规范体系整理
+
+### 操作概述
+
+将原 `.cursorrules` 文件中的所有规范内容，按照职责拆分为 `.cursor/rules/` 目录下的独立 `.mdc` 文件，并更新 `.cursorrules` 为精简的规则索引入口。新增两类规范（Git 提交规范、错误处理规范）作为体系补充。
+
+---
+
+### 一、新增/更新的规则文件
+
+| 文件 | alwaysApply | glob 范围 | 内容描述 |
+|------|-------------|-----------|----------|
+| `ai-behavior.mdc` | `true` | 全局 | AI 助手身份、工作流程、项目管理、代码质量要求 |
+| `chinese-language.mdc` | `true` | 全局 | 强制所有思考与回答内容使用中文输出 |
+| `code-style.mdc` | `true` | 全局 | 通用编码原则、事件命名、CSS cursor 规范、异步代码规范 |
+| `typescript-conventions.mdc` | `false` | `**/*.ts`, `**/*.tsx` | 命名前缀（I/E/T）、数组类型、文件命名、类型安全、工具类型、严格模式配置 |
+| `react-conventions.mdc` | `false` | `**/*.tsx` | 组件结构目录、函数组件定义、Props 接口、Hooks 规范（useState/useEffect/useCallback/useMemo）、渲染规范、Next.js 补充规范 |
+| `comment-conventions.mdc` | `false` | `**/*.ts`, `**/*.tsx` | JSDoc 注释规范（函数/变量/组件/Interface/Type/Enum）、行内注释规范、禁止事项 |
+| `git-conventions.mdc` | `true` | 全局 | Conventional Commits 规范、分支命名规范、原子提交原则、禁止事项、Code Review 规范 |
+| `error-handling.mdc` | `false` | `**/*.ts`, `**/*.tsx` | 异步错误处理、ApiError 类、React 组件三态管理、ErrorBoundary、表单校验错误处理 |
+| `performance.mdc` | `false` | `**/*.tsx` | useMemo/useCallback/React.memo 使用规则、列表虚拟化、代码分割懒加载、图片优化、并行请求、请求缓存 |
+
+---
+
+### 二、更新 .cursorrules
+
+将原有的完整规则内容精简为**规则索引入口**，包含：
+- 规则文件列表（文件名、作用范围、描述）
+- 技术栈说明
+- 快速参考指引（场景 → 对应规则文件）
+
+---
+
+### 三、规则设计原则
+
+- **全局规则**（`alwaysApply: true`）：影响所有文件的行为规范，如 AI 行为、代码风格、Git 规范
+- **文件级规则**（`globs` 限定）：仅在特定文件类型激活，减少非相关文件的规则噪音
+- **职责单一**：每个文件只覆盖一类规范，便于独立维护和更新
+
+---
+
+## [2026-03-03] 提分专项 PRD 飞书文档转 Markdown
+
+### 操作概述
+读取 `.cursor/docs/fe-reverse-teaching/提分专项/` 目录下所有反讲文档，提取其中的 PRD 飞书链接，通过飞书 MCP API 将 `docx` 类型文档转换为 Markdown 格式，并保存到 `.cursor/docs/product-requirement-document/提分专项/` 目录下。
+
+---
+
+### 一、创建 Cursor 规则
+
+**文件**：`.cursor/rules/chinese-language.mdc`
+
+**内容**：`alwaysApply: true`，强制要求所有 AI 思考过程与回答内容使用中文输出。
+
+---
+
+### 二、源文件目录
+
+`.cursor/docs/fe-reverse-teaching/提分专项/`
+
+读取该目录下所有 `.md` 文件，通过正则匹配提取 `**prd：**[标题](飞书链接)` 格式的 PRD 链接。
+
+共提取到：
+- 飞书 PRD 链接：**19 条**
+- 非飞书链接（跳过）：**1 条**
+
+---
+
+### 三、成功转换的 PRD 文件（9 个）
+
+保存目录：`.cursor/docs/product-requirement-document/提分专项/`
+
+| 序号 | 文件名 | 飞书 Obj Token |
+|------|--------|---------------|
+| 1 | 收分V4.0+支持战略学科.md | （已转换） |
+| 2 | 收分V4.1.md | （已转换） |
+| 3 | 【已上线】EES内容交接+支持PDF试卷分析.md | （已转换） |
+| 4 | 【已上线】企微收集成绩+AI作文批改.md | （已转换） |
+| 5 | 【已上线】按学科调用模型分析&更新题目标签展示.md | （已转换） |
+| 6 | 【已上线】阶段报告3.0.md | （已转换） |
+| 7 | 【开发中】增加目标院校模块+补充埋点+数据准确性测试.md | （已转换） |
+| 8 | 【已上线】试卷分析报告七期-线上报告替换+试卷分析功能优化+prompt优化.md | （已转换） |
+| 9 | 【已上线】试卷分析报告八期-接入Theta能力.md | （已转换） |
+
+---
+
+### 四、跳过的 PRD（10 个）
+
+以下 PRD 在调用 `user-feishu-mcp-wiki_v2_space_getNode` 时返回 `code: 131005, msg: not found`，无法解析 `obj_token`，已按规则跳过：
+
+1. 【已上线】收分V3.0产品需求文档
+2. 【已上线】收分模型升级V3.1
+3. 【已上线】收分V3.2
+4. 【已上线】分阶段报告1.0
+5. 【已上线】阶段报告2.0
+6. 【已上线】前端反讲-提分宝V1.1
+7. 【已上线】前端反讲-提分宝V1.2
+8. 【已上线】AI作文批改
+9. （其他无法解析的节点）
+10. （其他无法解析的节点）
+
+> 跳过原因：飞书 `node_token` 无法通过 `getNode` API 解析为有效的 `obj_token`（文档可能已删除、迁移或权限不足）。
+
+---
+
+### 五、使用的主要 API
+
+| API | 用途 |
+|-----|------|
+| `user-feishu-mcp-wiki_v2_space_getNode` | 将 `node_token` 解析为 `obj_token` 和 `obj_type` |
+| `user-feishu-mcp-docs_v1_content_get` | 获取飞书 `docx` 文档内容并转换为 Markdown |
+
+---
+
+### 六、执行结果汇总
+
+- 总 PRD 链接数（飞书）：19
+- 成功转换：**9**
+- 跳过（getNode not found）：**10**
+- 跳过（非飞书链接）：**1**
+
+---
+
+## 2026-03-05 补充反讲文档第5、6大点内容
+
+### 修改文件
+
+`.cursor/docs/fe-reverse-teaching/中价课/【前端反讲】真题考点·好题速递.md`
+
+### 修改说明
+
+基于 `feature-20260304-middleCourse` 分支的 `git diff`，对反讲文档的第5大点（设计思路和方案）与第6大点（详细设计）进行了内容补充和代码注释完善。**仅修改了这两个大块，第1-4章及第7章保持原样。**
+
+### 第5大点改动
+
+| 小节 | 改动内容 |
+|------|---------|
+| 5.1 整体流程图 | 将原文字列表替换为 Mermaid `flowchart TD` 流程图，完整展示从首页入口 → 列表页 → 解析页 → CollapsibleActionBar → 跳转/加好友的交互路径 |
+| 5.3 整体项目难点梳理与解决方案 | 填充原为空的表格，补充4条技术难点及对应解决方案（定时器管理、横竖屏响应式、跨平台路由、Mock数据防空白） |
+| 5.4 跨部门协同方案（新增） | 新增该小节，明确与后端（接口约定）、产品/后端（`recommendReason` 字段）、数据侧（Habo 事件 ID 及参数）的协作约定 |
+
+### 第6大点改动
+
+| 小节 | 改动内容 |
+|------|---------|
+| 6.1.2 好题速递列表页 | 补充代码片段：`useChangeTitle` 标题变更、`MIDDLE_RECOMMEND_ITEM_CLICK` 埋点新增 `question_id`、注释掉版本切换按钮代码 |
+| 6.1.3 题目解析页 | 将 `FloatGuideButton` 描述更正为 `CollapsibleActionBar`；补充完整代码实现（state 定义含 Mock 数据、`getCollapsibleActionBarContent` 接口调用、`pageJump` 三端路由跳转含埋点、CollapsibleActionBar JSX 渲染） |
+| 6.2 通用代码设计 | 将 `FloatGuideButton` 节替换为 `CollapsibleActionBar` 节，补充完整 TypeScript 实现（含 JSDoc 注释、`ICollapsibleActionBarProps`、`isOpen` state、`timerId` ref、`useEffect` 自动折叠逻辑、JSX 三区块注释）；新增相关类型定义（`IFunctionEntries`、`IGetCollapsibleActionBarContentInput/Output`）及 Service 层封装（`getCollapsibleActionBarContent`），所有代码均附中文 JSDoc 注释 |
+| 6.3 接口描述 | 新增 `GET /api/practice/get-collapsible-action-bar-content` 接口；已有接口描述中将 `question_id` 字段更正为 `recommendReason` 字段 |
+
+### 代码注释规范
+
+本次所有补充的代码片段均遵循项目注释规范：
+- 函数/组件使用 `/** */` JSDoc 格式，包含 `@description`、`@param`、`@return`、`@example`
+- state/ref 变量使用 `@description` + `@type` 注释
+- interface 字段使用行内 `/** */` 注释说明用途
+- 关键逻辑节点补充行内中文注释，说明非显而易见的意图
+
+---
