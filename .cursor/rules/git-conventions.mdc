@@ -1,0 +1,131 @@
+---
+description: Git 提交与分支规范 - 适用于整个项目的版本管理规范
+alwaysApply: true
+---
+
+# Git 规范
+
+## Commit Message 规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，格式如下：
+
+```
+<type>(<scope>): <subject>
+
+[body]
+
+[footer]
+```
+
+### type 类型
+
+| type | 说明 |
+|------|------|
+| `feat` | 新功能 |
+| `fix` | Bug 修复 |
+| `docs` | 文档更新 |
+| `style` | 代码格式调整（不影响逻辑） |
+| `refactor` | 重构（非新增功能、非 Bug 修复） |
+| `perf` | 性能优化 |
+| `test` | 新增或修改测试 |
+| `chore` | 构建配置、依赖更新、工程化工作 |
+| `revert` | 回滚某次提交 |
+| `ci` | CI/CD 配置修改 |
+
+### scope 作用域（可选）
+
+`scope` 描述本次改动的模块或功能范围，使用小写短横线风格：
+
+```
+feat(user-profile): 新增头像上传功能
+fix(auth): 修复 token 过期未刷新的问题
+docs(readme): 更新本地开发启动说明
+```
+
+### subject 主题
+
+- 使用**中文**描述，简洁清晰，不超过 50 个字符
+- 以动词开头，如"新增"、"修复"、"优化"、"重构"、"更新"、"删除"
+- 末尾**不加句号**
+
+### body（可选）
+
+- 描述改动的背景和原因
+- 说明与之前行为的差异
+- 每行不超过 72 个字符
+
+### footer（可选）
+
+- 关联 issue：`Closes #123`、`Fixes #456`
+- Breaking Change：以 `BREAKING CHANGE:` 开头，详细说明不兼容变更
+
+### 示例
+
+```
+feat(exam-report): 新增试卷分析报告一期功能
+
+- 支持按科目维度展示得分分布
+- 新增错题标注与知识点关联逻辑
+- 接入后端 /api/exam/report 接口
+
+Closes #248
+```
+
+```
+fix(login): 修复手机号登录时验证码不刷新的问题
+```
+
+```
+refactor(api): 将 axios 请求封装统一到 request.ts
+```
+
+---
+
+## 分支命名规范
+
+### 格式
+
+```
+<type>/<issue-or-date>-<description>
+```
+
+### 分支类型
+
+| 分支类型 | 说明 | 示例 |
+|----------|------|------|
+| `feature/` | 新功能开发 | `feature/20260114-exam-report` |
+| `fix/` | Bug 修复 | `fix/login-sms-refresh` |
+| `hotfix/` | 生产环境紧急修复 | `hotfix/payment-crash` |
+| `refactor/` | 重构 | `refactor/api-layer` |
+| `chore/` | 工程化、依赖更新 | `chore/upgrade-react19` |
+| `docs/` | 文档更新 | `docs/api-readme` |
+
+### 规则
+
+- 全部小写，使用短横线 `-` 分隔单词
+- 描述部分简洁清晰，不超过 30 个字符
+- 禁止使用 `master`、`dev`、`test` 等含糊名称作为功能分支
+
+---
+
+## 提交操作规范
+
+### 原子提交原则
+
+- 每次提交只做**一件事**，不要将多个无关改动混在一次提交中
+- 一次功能开发可以拆分为多次提交（接口封装、组件实现、联调修复分开提交）
+
+### 禁止事项
+
+- 禁止直接向 `main` / `master` 分支推送代码
+- 禁止提交包含调试代码（`console.log`、`debugger`）的 commit
+- 禁止提交未解决冲突标记（`<<<<<<`、`>>>>>>`）的文件
+- 禁止将 `.env`、`.env.local` 等敏感文件纳入版本控制
+- 禁止在 commit message 中使用 `fix bug`、`update`、`test` 等无意义描述
+
+### Code Review 规范
+
+- 功能分支合并前必须发起 Pull Request / Merge Request
+- PR 标题遵循与 commit message 相同的规范
+- PR 描述需包含：改动背景、方案说明、测试结果截图（如有 UI 改动）
+- 至少需要 1 位团队成员 Review 通过后方可合并

@@ -1,0 +1,93 @@
+---
+description: 代码风格与实现指南 - 适用于所有代码文件的通用编写规范
+alwaysApply: true
+---
+
+# 代码风格与实现指南
+
+## 通用编写原则
+
+- 尽可能使用**提前返回（early returns）**使代码逻辑更清晰易读
+- 注重代码的**简单性和可读性**，而不是性能
+- 遵循 **DRY 原则**（Don't Repeat Yourself），避免重复代码
+- 使用**常量**而不是函数定义，例如：`const toggle = () =>` 而非 `function toggle()`
+- 使用**描述性的变量和函数/常量名称**，名称应自解释
+
+## 事件处理命名
+
+- 事件处理函数统一使用 `handle` 前缀
+  - `onClick` → `handleClick`
+  - `onKeyDown` → `handleKeyDown`
+  - `onChange` → `handleChange`
+  - `onSubmit` → `handleSubmit`
+
+## Cursor 交互规范（CSS）
+
+### 可交互元素
+- 按钮、链接等可点击元素：`cursor: pointer`
+- 禁用状态元素：`cursor: not-allowed`
+
+### 文本操作
+- 输入框：`cursor: text`
+- 文本选择区域：`cursor: text`
+
+### 加载状态
+- 数据加载中：`cursor: wait`
+- 异步操作进行时：`cursor: progress`
+
+### 特殊交互
+- 展示信息的图标：`cursor: help`
+- 可拖拽元素：`cursor: move`
+- 图片预览/放大：`cursor: zoom-in`
+
+### 默认状态
+- 普通元素：`cursor: default`
+- 不可交互元素：`cursor: default`
+
+## 类型定义
+
+- 始终为变量、函数参数和返回值定义类型
+- 优先使用具体类型，避免使用 `any`
+- 需要灵活性时使用 `unknown` 替代 `any`，并进行类型守卫
+
+## 导入规范
+
+- 导入顺序：外部库 → 内部模块 → 类型定义 → 样式文件
+- 使用绝对路径导入（项目别名），避免深层相对路径
+  ```ts
+  // 推荐
+  import { Button } from '@/components/Button';
+
+  // 避免
+  import { Button } from '../../../components/Button';
+  ```
+
+## 常量管理
+
+- 魔法字符串和数字必须提取为具名常量
+- 常量命名使用 `UPPER_SNAKE_CASE`
+  ```ts
+  // 推荐
+  const MAX_RETRY_COUNT = 3;
+  const API_BASE_URL = '/api/v1';
+
+  // 避免
+  if (retryCount > 3) { ... }
+  fetch('/api/v1/users');
+  ```
+
+## 异步代码
+
+- 统一使用 `async/await` 而不是 `.then()` 链式调用
+- 异步函数必须包含 `try/catch` 进行错误处理
+  ```ts
+  // 推荐
+  const fetchUser = async (id: string) => {
+    try {
+      const user = await api.getUser(id);
+      return user;
+    } catch (error) {
+      handleError(error);
+    }
+  };
+  ```

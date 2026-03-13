@@ -1,0 +1,288 @@
+---
+description: React 组件规范 - 适用于所有 React 组件文件，包含组件结构、Hooks、Props 规范
+globs: ["**/*.tsx"]
+alwaysApply: false
+---
+
+# React 组件规范
+
+## 组件结构
+
+### 目录组织
+
+- **业务组件**：放置在 `src/pageComponents/` 目录下
+- **通用组件**：放置在 `src/components/` 目录下
+- **页面级组件**：放置在 `src/pages/` 或 `src/app/` 目录下（Next.js）
+
+### 组件文件夹结构
+
+```
+components/
+  UserProfile/
+    index.tsx          # 组件主文件（导出入口）
+    UserProfile.tsx    # 组件实现
+    userProfile.module.css  # 样式文件（CSS Modules）
+    userProfileTypes.ts     # 类型定义
+```
+
+### 组件命名
+
+- 组件名称必须使用 **PascalCase**，如：`UserProfile`、`OrderList`
+- 组件文件名与组件名保持一致：`UserProfile.tsx`
+- 一个文件只导出一个主组件（可以有辅助子组件）
+
+## 组件定义规范
+
+### 使用函数组件
+
+```tsx
+/**
+ * @description 用户资料卡片组件
+ * @param props - 组件属性
+ * @param props.userId - 用户 ID
+ * @param props.showAvatar - 是否显示头像，默认为 true
+ * @return 用户资料卡片 React 元素
+ * @example
+ * // 输入
+ * <UserProfile userId="123" showAvatar={true} />
+ * // 输出
+ * <div class="user-profile">...</div>
+ */
+const UserProfile = ({ userId, showAvatar = true }: IUserProfileProps) => {
+  // 组件实现
+  return <div className="user-profile">...</div>;
+};
+
+export default UserProfile;
+```
+
+### Props 接口定义
+
+```tsx
+/**
+ * @description UserProfile 组件的 Props 类型
+ */
+interface IUserProfileProps {
+  /** 用户唯一 ID */
+  userId: string;
+  /** 是否显示头像，默认 true */
+  showAvatar?: boolean;
+  /** 点击卡片的回调 */
+  onClick?: (userId: string) => void;
+  /** 子元素 */
+  children?: React.ReactNode;
+}
+```
+
+- Props 接口以 `I` 开头，命名为 `I{组件名}Props`
+- 可选 Props 使用 `?` 标记，并提供合理默认值
+- 回调函数以 `on` 开头（如 `onClick`、`onChange`）
+- 组件内部事件处理函数以 `handle` 前缀（如 `handleClick`）
+
+## Hooks 规范
+
+### 自定义 Hook
+
+- 自定义 Hook 必须以 `use` 开头，如 `useAuth`、`useFetchUser`
+- Hook 文件使用 camelCase 命名，放置在 `src/hooks/` 目录下
+
+```ts
+/**
+ * @description 获取用户信息的自定义 Hook
+ * @param userId - 用户 ID
+ * @return 用户信息、加载状态和错误信息
+ * @example
+ * // 输入
+ * const { user, loading, error } = useFetchUser('123');
+ * // 输出
+ * { user: { id: '123', name: '张三' }, loading: false, error: null }
+ */
+const useFetchUser = (userId: string) => {
+  const [user, setUser] = useState<IUser | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await api.getUser(userId);
+        setUser(data);
+      } catch (err) {
+        setError('获取用户信息失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchData();
+    }
+  }, [userId]);
+
+  return { user, loading, error };
+};
+```
+
+### Hooks 使用规范
+
+- 只在函数组件或自定义 Hook 顶层调用 Hook
+- 不在循环、条件判断或嵌套函数中调用 Hook
+- `useEffect` 依赖数组必须完整且准确
+
+```tsx
+// 推荐：依赖数组明确
+useEffect(() => {
+  fetchUserData(userId);
+}, [userId]);
+
+// 避免：缺少依赖
+useEffect(() => {
+  fetchUserData(userId); // userId 未列入依赖
+}, []); // eslint-disable-line react-hooks/exhaustive-deps（除非有明确原因）
+```
+
+### useState 规范
+
+```tsx
+// 推荐：使用具体类型
+const [user, setUser] = useState<IUser | null>(null);
+const [count, setCount] = useState<number>(0);
+const [isVisible, setIsVisible] = useState<boolean>(false);
+
+// 复杂状态优先使用 useReducer
+const [state, dispatch] = useReducer(userReducer, initialState);
+```
+
+### useCallback 和 useMemo
+
+```tsx
+// 传递给子组件的函数必须用 useCallback 包裹
+const handleItemClick = useCallback((id: string) => {
+  setSelectedId(id);
+}, []);
+
+// 复杂计算结果使用 useMemo 缓存
+const filteredList = useMemo(
+  () => list.filter((item) => item.active),
+  [list]
+);
+```
+
+## 组件渲染规范
+
+### 条件渲染
+
+```tsx
+// 推荐：提前返回处理空状态
+const UserCard = ({ user }: { user: IUser | null }) => {
+  if (!user) return <div className="empty">暂无用户信息</div>;
+
+  return <div className="user-card">{user.name}</div>;
+};
+
+// 推荐：短路运算符处理简单条件
+const Component = ({ isAdmin }: { isAdmin: boolean }) => (
+  <div>
+    {isAdmin && <AdminPanel />}
+    <MainContent />
+  </div>
+);
+
+// 避免：嵌套三元运算符
+// condition ? (a ? b : c) : d  // 难以阅读
+```
+
+### 列表渲染
+
+```tsx
+// 推荐：提取为独立组件，key 使用稳定唯一标识
+const UserList = ({ users }: { users: IUser[] }) => (
+  <ul>
+    {users.map((user) => (
+      <UserListItem key={user.id} user={user} />
+    ))}
+  </ul>
+);
+
+// 避免：使用 index 作为 key（除非列表不会重排）
+{users.map((user, index) => (
+  <li key={index}>{user.name}</li>  // 避免
+))}
+```
+
+### 避免内联对象和函数
+
+```tsx
+// 避免：每次渲染创建新的对象/函数
+<Component style={{ margin: 0 }} onClick={() => handleClick(id)} />
+
+// 推荐：提取为常量或使用 useCallback
+const STYLE = { margin: 0 };
+const handleItemClick = useCallback(() => handleClick(id), [id]);
+<Component style={STYLE} onClick={handleItemClick} />
+```
+
+## 组件拆分原则
+
+### 何时拆分组件
+
+- 组件超过 **150 行**时考虑拆分
+- 可以独立复用的 UI 逻辑提取为子组件
+- 有独立状态的逻辑块提取为子组件
+- 区分**展示组件**（无状态，只接受 Props）和**容器组件**（含逻辑和状态）
+
+### 组合优于继承
+
+```tsx
+// 推荐：通过 children 和 Props 组合
+const Card = ({ title, children, footer }: ICardProps) => (
+  <div className="card">
+    <div className="card-header">{title}</div>
+    <div className="card-body">{children}</div>
+    {footer && <div className="card-footer">{footer}</div>}
+  </div>
+);
+```
+
+## Next.js 规范（补充）
+
+### 文件路由
+
+- 页面组件放在 `app/` 目录，遵循 Next.js App Router 约定
+- 路由文件名使用小写 kebab-case，如 `user-profile/page.tsx`
+- 使用 `loading.tsx`、`error.tsx` 处理加载和错误状态
+
+### Server 与 Client 组件
+
+```tsx
+// Server Component（默认）：适合数据获取、无交互场景
+// app/users/page.tsx
+const UsersPage = async () => {
+  const users = await fetchUsers();
+  return <UserList users={users} />;
+};
+
+// Client Component：需要状态、事件处理
+'use client';
+
+const InteractiveButton = () => {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+};
+```
+
+### 数据获取
+
+```tsx
+// 推荐：在 Server Component 中直接 async/await
+const ProductPage = async ({ params }: { params: { id: string } }) => {
+  const product = await getProduct(params.id);
+
+  if (!product) {
+    notFound(); // 使用 Next.js notFound()
+  }
+
+  return <ProductDetail product={product} />;
+};
+```
