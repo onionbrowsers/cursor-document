@@ -21,13 +21,14 @@ if [[ -z "$PROJECT_ROOT" || ! -d "$PROJECT_ROOT/.cursor" ]]; then
 fi
 
 SOURCE_DIR="$PROJECT_ROOT/.cursor"
-mkdir -p "$CURSOR_DOCUMENT_DIR"
+DEST_DIR="$CURSOR_DOCUMENT_DIR/.cursor"
+mkdir -p "$DEST_DIR"
 
-# 同步 .cursor 到目标，排除 docs
+# 同步 .cursor 到目标的 .cursor 子目录，排除 docs，保留目标根目录其他内容（如 .git）
 rsync -a --delete \
   --exclude='docs' \
   "$SOURCE_DIR/" \
-  "$CURSOR_DOCUMENT_DIR/"
+  "$DEST_DIR/"
 
 # 在 cursor-document 仓库内提交并推送
 if [[ ! -d "$CURSOR_DOCUMENT_DIR/.git" ]]; then

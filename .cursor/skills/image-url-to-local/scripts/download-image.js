@@ -2,8 +2,8 @@
 /**
  * 将图片 URL 下载到 skill 临时目录，或清理该目录。
  * 用法：
- *   node download-image.js <图片URL>     → 下载并输出本地绝对路径
- *   node download-image.js --clean      → 删除本次会话下载的临时图片
+ *   node download-image.js <图片URL>   → 下载并输出本地绝对路径
+ *   node download-image.js --clean    → 删除本次会话下载的临时图片
  */
 
 const fs = require('fs');
@@ -30,6 +30,11 @@ function download(url) {
     const protocol = url.startsWith('https') ? https : http;
     protocol.get(url, { timeout: 15000 }, (res) => {
       const code = res.statusCode;
+      if (code === 301 || code === 302) {
+        const location = res.headers['location'];
+        if (location) return download(location).then(resolve).catch(reject);
+        return reject(new Error(`Redirect without Location header`));
+      }
       if (code !== 200) {
         reject(new Error(`HTTP ${code}`));
         return;
@@ -59,7 +64,7 @@ async function main() {
 
   const url = args[0];
   if (!url || url.startsWith('--')) {
-    process.stderr.write('Usage: node download-image.js <image_url> | node download-image.js --clean\n');
+    process.stderr.write('Usage: node download-image.js <image_url> | --clean\n');
     process.exit(1);
   }
 
