@@ -55,7 +55,7 @@ description: 根据 TAPD Bug ID 查询缺陷详情，在浏览器中验证修复
 
 使用 `cursor-ide-browser` MCP 的 `browser_navigate`，**必须加 `position: "side"`**，在 Cursor 侧边面板中打开页面，让用户能实时看到浏览器内容并配合操作：
 
-```
+```text
 browser_navigate(url: page_url, position: "side", newTab: true)
 ```
 
@@ -75,7 +75,7 @@ browser_navigate(url: page_url, position: "side", newTab: true)
 
 **正确做法**：使用 `browser_search` 搜索 Bug 相关的关键文字，工具会自动将页面滚动到匹配位置：
 
-```
+```text
 browser_search(query: "Bug 描述中的关键词", viewId: viewId)
 ```
 
@@ -87,13 +87,14 @@ browser_search(query: "Bug 描述中的关键词", viewId: viewId)
 
 截图前必须先 `browser_lock`，截图后 `browser_unlock`：
 
-```
+```text
 browser_lock(viewId)
 → browser_take_screenshot(viewId)
 → browser_unlock(viewId)
 ```
 
 根据截图判断：
+
 - Bug 描述的问题是否已不再复现（样式、交互、数据展示等）
 - 对比 Bug 附图与当前截图，确认修复效果
 
