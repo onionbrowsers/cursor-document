@@ -161,3 +161,24 @@
 - 关键逻辑节点补充行内中文注释，说明非显而易见的意图
 
 ---
+
+## [2026-03-16] 新增分支清理 command
+
+### 修改文件
+
+`.cursor/commands/git-branch-cleanup.md`
+
+### 修改说明
+
+新增一个可复用的 Cursor command，用于一键清理本地与远程 Git 分支。
+
+- 支持两种调用方式：
+  - `/git-branch-cleanup 预览`：仅输出待删除分支列表
+  - `/git-branch-cleanup`：执行本地+远程清理
+- 清理规则与人工执行保持一致：
+  - 仅删除已合并到主干（`origin/master` 或 `origin/main`）的分支
+  - 自动保护当前分支及 `main/master/develop/dev`
+  - 远程跳过 `origin/HEAD`
+- 文档中提供了“执行命令”和“预览命令”两套一行 shell，便于直接复用
+
+---
