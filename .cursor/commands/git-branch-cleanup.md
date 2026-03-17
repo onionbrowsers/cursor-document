@@ -15,7 +15,7 @@
 2. 仅删除“已合并到主干”的分支（通过 `git merge-base --is-ancestor` 判断）
 3. 自动保护以下分支，不参与删除：
    - 当前分支（`git branch --show-current`）
-   - `main`、`master`、`develop`、`dev`
+   - `main`、`master`、`develop`、`dev`、`release`
    - `origin/HEAD`
 4. 先执行 `git fetch --all --prune`，确保远程状态最新
 

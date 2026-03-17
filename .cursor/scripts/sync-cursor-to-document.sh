@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # 将 .cursor（排除 docs）同步到 cursor-document 并 push
 # 可被 Cursor afterFileEdit hook 与 Git post-commit hook 调用
-
-set -e
+# 注意：不使用 set -e，避免某一步失败时静默中断；关键步骤单独判断并输出错误信息
 
 CURSOR_DOCUMENT_DIR="/Users/mac/companycode/cursor-document"
 
