@@ -182,3 +182,13 @@
 - 文档中提供了“执行命令”和“预览命令”两套一行 shell，便于直接复用
 
 ---
+
+## [2026-03-18] appHomeType：IAppRankDataRes 对齐接口 data
+
+### 操作说明
+
+- 删除 `IAppHome*`、`IAppHomeResponse` 等冗余导出。
+- `IAppRankDataRes` 仅描述接口返回体中的 `data`：`activityInfo`（含嵌套 `pkRules`）、`guardianStar`、`studentRankingList`、`currentStudent`（含 `scoreGap`）、`nextStep`。
+- 保留 `IAppRankDataParams` 不变。
+
+---
