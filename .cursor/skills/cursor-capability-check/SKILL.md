@@ -82,7 +82,7 @@
 
 ### Step 4：重写汇总文档
 
-覆盖写入 `.cursor/docs/cursor-capabilities.md`，结构如下：
+覆盖写入 `.cursor/cursor-capabilities.md`，结构如下：
 
 ```markdown
 # .cursor 能力总览
