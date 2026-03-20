@@ -26,6 +26,7 @@ alwaysApply: true
 
 - 对于每个项目，如果没有 `.cursor` 文件夹，则自动创建
 - 如果使用 Plan 模式，则自动将生成的 plan 内容保存在 `.cursor/plans/` 文件夹下
+- 每次对话开始时，若检测到 `.cursor/.needs-capability-update` 文件存在，主动提示用户：「`.cursor` 目录发生了变更，建议运行 **cursor-capability-check** Skill 刷新能力总览文档」
 
 ## 代码质量要求
 
