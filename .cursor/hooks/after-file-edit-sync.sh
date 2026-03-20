@@ -51,4 +51,11 @@ fi
 
 export CURSOR_PROJECT_DIR="$ROOT"
 "$SYNC_SCRIPT" "$ROOT"
+
+# 写入能力更新标志文件，提示下次 AI 运行 cursor-capability-check Skill 刷新汇总文档
+NEEDS_UPDATE_FILE="$ROOT/.cursor/.needs-capability-update"
+CHANGE_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+echo "changed_at=${CHANGE_TIME}" > "$NEEDS_UPDATE_FILE"
+echo "changed_file=${FILE_PATH}" >> "$NEEDS_UPDATE_FILE"
+
 exit 0
