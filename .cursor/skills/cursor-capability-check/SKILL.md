@@ -2,7 +2,7 @@
 
 ## 概述
 
-扫描 `.cursor` 目录下的所有能力文件（commands、rules、hooks、skills、scripts、agents），重新生成并更新 `.cursor/docs/cursor-capabilities.md` 汇总文档，同时深度分析各文件之间的依赖关系与功能重叠，输出检查报告。
+扫描 `.cursor` 目录下的所有能力文件（commands、rules、hooks、skills、scripts、agents），重新生成并更新 `.cursor/cursor-capabilities.md` 汇总文档，同时深度分析各文件之间的依赖关系与功能重叠，输出检查报告。
 
 ## 触发词
 
