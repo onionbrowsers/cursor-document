@@ -132,7 +132,7 @@
 向用户输出以下信息：
 
 ```
-✅ 能力总览已更新 → .cursor/docs/cursor-capabilities.md
+✅ 能力总览已更新 → .cursor/cursor-capabilities.md
 
 📊 本次扫描结果：
   - Commands：X 个
