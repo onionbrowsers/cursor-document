@@ -1,9 +1,10 @@
 # .cursor 能力总览
 
-> 本文档由 `cursor-capability-check` Skill 自动生成并维护。
-> 当 `.cursor` 目录下（非 `docs/`）的任意文件发生变更后，可运行该 Skill 刷新此文档。
->
-> **最后更新：** 2026-03-20
+> **最后更新：** 2026-03-26  
+> **本次扫描：** 6 个 commands、10 条 rules（4 条 alwaysApply）、1 个 hook、10 个 skills、1 个 agent、3 个 scripts（含 README）  
+> **本次触发原因：** `afterFileEdit` 写入 `.cursor/.needs-capability-update`（`changed_file=.cursor/.cursorlog`，`changed_at=2026-03-26 15:29:13`），已执行本 Skill 并清理标志文件。
+
+本文档由 `cursor-capability-check` Skill 自动生成并维护；当 `.cursor` 下（非 `docs/`）能力文件变更后，可再次运行该 Skill 刷新。
 
 ---
 
