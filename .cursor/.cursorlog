@@ -1,9 +1,5 @@
-# Cursor 生成记录
+# Cursor 会话记录（节选）
 
-## 2026-03-19
+## 2026-03-26
 
-### 新增 Skill：`feishu-docx-read-with-images`
-
-- **路径**：`.cursor/skills/feishu-docx-read-with-images/SKILL.md`
-- **作用**：读飞书 docx 时联合处理正文与内嵌图——`wiki_v2_space_getNode` 解析文档 ID → `docs_v1_content_get`（可选）→ `docx_v1_documentBlock_list` 收集 `block_type:27` 的 `image.token` → `drive_v1_media_batchGetTmpDownloadUrl` 换临时链 → 调用 `image-url-to-local` 的 `download-image.js` + Read 分析 → `--clean` 汇总图文。
-- **脚本**：`.cursor/skills/feishu-docx-read-with-images/scripts/extract-image-file-tokens.js`，从块列表 API 的 JSON 中提取图片 file_token（每行一个，便于每批 ≤5 调临时链接接口）。
+- 新增 `docs/项目交接文档.md`：通用项目交接 Markdown 框架；第 5 章之后相对 feishu 示例文档做了泛化（环境矩阵、第三方集成表、埋点/排障附录等），并为本仓库预留 `pages/`、`pageComponent/`、`service/` 等目录导读示例。
