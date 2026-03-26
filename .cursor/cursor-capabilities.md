@@ -10,14 +10,20 @@
 
 ## 目录
 
-- [Commands（命令）](#commands命令)
-- [Rules（规则）](#rules规则)
-- [Hooks（钩子）](#hooks钩子)
-- [Skills（技能）](#skills技能)
-- [Agents（SubAgent）](#agentssubagent)
-- [Scripts（脚本）](#scripts脚本)
-- [文件关系与依赖](#文件关系与依赖)
-- [功能重叠检查](#功能重叠检查)
+- [.cursor 能力总览](#cursor-能力总览)
+  - [目录](#目录)
+  - [Commands（命令）](#commands命令)
+  - [Rules（规则）](#rules规则)
+    - [始终应用（alwaysApply）](#始终应用alwaysapply)
+    - [按需应用（特定文件类型触发）](#按需应用特定文件类型触发)
+  - [Hooks（钩子）](#hooks钩子)
+  - [Skills（技能）](#skills技能)
+  - [Agents（SubAgent）](#agentssubagent)
+  - [Scripts（脚本）](#scripts脚本)
+  - [文件关系与依赖](#文件关系与依赖)
+  - [功能重叠检查](#功能重叠检查)
+    - [⚠️ 重叠项](#️-重叠项)
+    - [✅ 合理分层](#-合理分层)
 
 ---
 
