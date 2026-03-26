@@ -5,3 +5,4 @@
 - 新增 `docs/项目交接文档.md`：通用项目交接 Markdown 框架；第 5 章之后相对 feishu 示例文档做了泛化（环境矩阵、第三方集成表、埋点/排障附录等），并为本仓库预留 `pages/`、`pageComponent/`、`service/` 等目录导读示例。
 - 更新 `docs/项目交接文档.md`：按仓库补全技术栈、目录、脚本、basePath、server.js 端口与探活、rewrites、service 分层、业务域路由表、环境变量名、Habo/Sentry/Prisma、已知技术债（README 标题、console.log、https Agent）等；交接人/发布流程/域名等仍留空待填。
 - 验证 TAPD MCP：调用 `user-mcp-server-tapd` 的 `get_user_participant_projects` 成功（status 1、返回参与空间列表），说明 MCP 与 TAPD 凭证可用。
+- 修复 TAPD Bug `1154368771001465653`（守卫榜 / `pages/app-rank`）：`style.module.less` 窄屏与多人展示——领奖台列 `min-width:0`、姓名省略号、取消列 `overflow:hidden` 避免裁切奖牌；列表姓名省略；底栏文案 `min-width:0`+省略；≤375px 收紧领奖台边距与听课按钮宽度；导航区与规则气泡略向右、气泡最大宽度随视口收缩。
