@@ -29,7 +29,7 @@
 |------|------|----------|
 | `commands/feishu-doc-summary.md` | `/feishu-doc-summary` | 给定飞书文档 ID 或 URL，读取正文及图片，生成包含一句话概述、核心要点、详细摘要的结构化中文摘要 |
 | `commands/git-branch-cleanup.md` | `/git-branch-cleanup` | 批量删除已合并到主干的本地和远程 Git 分支，支持预览模式，自动保护 main/master/develop 等分支 |
-| `commands/git-commit.md` | `/git-commit` | 分析未提交变更，AI 自动生成符合 Conventional Commits 规范的中文 commit message，经用户确认后执行完整提交流程 |
+| `commands/git-commit.md` | `/git-commit` | 分析未提交变更；若仓库存在 `commitlint.config.js` 则按其 `type: 描述` 规则生成 message，否则用 Conventional Commits；预览后执行 add、commit、push（可排除路径或 `不push`） |
 | `commands/tapd-bug-info.md` | `/tapd-bug` | 根据 Bug ID 查询 TAPD 缺陷详情，结构化展示标题、状态、优先级、严重程度及链接 |
 | `commands/tapd-bug-status.md` | `/tapd-bug-status` | 更新指定 TAPD 缺陷状态，改为「已解决」时强制总结原因与方案并写入评论 |
 | `commands/tapd-todo.md` | `/tapd-todo` | 拉取当前用户所有 TAPD 项目待办（Bug/需求/任务），生成当日待办清单 MD 写入 `docs/todoList/` |
