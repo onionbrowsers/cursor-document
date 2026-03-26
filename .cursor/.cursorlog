@@ -4,3 +4,4 @@
 
 - 新增 `docs/项目交接文档.md`：通用项目交接 Markdown 框架；第 5 章之后相对 feishu 示例文档做了泛化（环境矩阵、第三方集成表、埋点/排障附录等），并为本仓库预留 `pages/`、`pageComponent/`、`service/` 等目录导读示例。
 - 更新 `docs/项目交接文档.md`：按仓库补全技术栈、目录、脚本、basePath、server.js 端口与探活、rewrites、service 分层、业务域路由表、环境变量名、Habo/Sentry/Prisma、已知技术债（README 标题、console.log、https Agent）等；交接人/发布流程/域名等仍留空待填。
+- 验证 TAPD MCP：调用 `user-mcp-server-tapd` 的 `get_user_participant_projects` 成功（status 1、返回参与空间列表），说明 MCP 与 TAPD 凭证可用。
