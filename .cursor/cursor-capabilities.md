@@ -189,4 +189,4 @@
 
 ---
 
-*本文档由 `cursor-capability-check` Skill 维护，请勿手动编辑。*
+*本文档由 cursor-capability-check Skill 维护，请勿手动编辑。*
