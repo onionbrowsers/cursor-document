@@ -2,7 +2,7 @@
 
 ## 2026-03-27
 
-- TAPD `1154368771001465818`（54368771）：守卫榜名次 ≥22 时接口可能仍返回「超过第20名」类 `nextStep.label`。新增 `utils/appRankNextStepLabel.ts` 将文案中的「第20名」按 `subclassRank - 1` 修正；`pages/app-rank/index.tsx` 按钮区改用修正后文案。已通过本地 `eslint` 校验；逻辑用 `node` 等价推演：25→「第24名」，21→不替换。
+- TAPD `1154368771001465818`（54368771）：守卫榜底栏**分差文案**修正——名次晚于 TOP20 时由「距上一名还差」改为「距第 N 名还差」（N=`subclassRank-1`）。实现：`utils/appRankScoreGapCopy.ts` + `pages/app-rank/index.tsx` 仅改 `myGap` 区域；**不修改**按钮 `nextStep.label`。开发态可加 `__useAppRankMock=1` 走 `koa-server/mock/appRankData.json`（已补充 activityInfo、第 16～20 名、当前用户第 25 名）便于本地/浏览器验证。已用 cursor-ide-browser 打开 `http://localhost:3002/precision-study/app-rank?clazzLessonNumber=demo&__useAppRankMock=1` 截图确认展示「距第24名还差 10 分」。
 
 ## 2026-03-26
 
