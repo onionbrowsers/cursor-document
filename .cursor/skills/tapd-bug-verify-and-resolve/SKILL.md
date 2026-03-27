@@ -39,7 +39,7 @@ description: 根据 TAPD Bug ID 查询缺陷详情，在浏览器中验证修复
 - 若 Bug 描述中含**图片**（如 `/tfl/captures/...`），必须按以下流程处理：
   1. 调用 TAPD MCP `get_image(workspace_id, { image_path })` 获取图片下载链接（`download_url`）。
   2. 使用 **image-url-to-local** skill 下载图片到本地：`node .cursor/skills/image-url-to-local/scripts/download-image.js "<download_url>"`，得到本地绝对路径。
-  3. 用 **Read` 工具读取该路径分析图片内容。
+  3. 用 **Read** 工具读取该路径分析图片内容。
   4. 分析完成后立即执行清理：`node .cursor/skills/image-url-to-local/scripts/download-image.js --clean`，避免临时文件残留。
   - **禁止**直接用 `curl` 或 Shell 将图片下载到 `/tmp` 等任意目录，必须通过 image-url-to-local skill 统一管理。
 
