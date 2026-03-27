@@ -3,7 +3,7 @@
 ## 2026-03-27
 
 - 更新 `.cursor/skills/tapd-bug-verify-and-resolve/SKILL.md`：新增「获取 Bug 失败」强制规则——MCP/网络错误、查无缺陷、无法定位空间或关键附图不可得时，须向用户说明原因并**中止**步骤 2～6，禁止臆测需求；frontmatter description 与注意事项同步补充。
-- TAPD `1154368771001465818`（54368771）：守卫榜底栏分差对齐 Bug 语义——名次晚于第 20 名时展示「距第20名还差」，分值为**当前得分与榜单第 20 名得分之差**（与「再得 X 分即可超过第 20 名」一致）；TOP20 内仍为「距上一名还差」+ 接口 `scoreGap`。找不到 `subclassRank===20` 的榜单项时回退接口文案与分差。实现见 `utils/appRankScoreGapCopy.ts` 的 `getGuardRankBottomGapBarCopy`。
+- TAPD `1154368771001465818`（54368771）：`pages/app-rank/index.tsx` 当 `currentStudentRank.subclassRank > 25` 时底栏第二行展示「再得 X 分即可超过第20名」，X 取 `max(0, 榜单第20名score - 当前用户score)`；否则仍为「距上一名还差」+ 接口 `scoreGap`。找不到 `subclassRank===20` 的榜单项时回退为「距上一名还差」。`koa-server/mock/appRankData.json` 将当前用户名次改为 26 便于联调。开发环境 URL 增加 `app_rank_mock=1` 可走本地 mock 数据验收（`getServerSideProps` 内分支）。
 
 ## 2026-03-26
 
