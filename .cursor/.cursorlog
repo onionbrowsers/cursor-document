@@ -1,5 +1,9 @@
 # Cursor 会话记录（节选）
 
+## 2026-03-27
+
+- TAPD `1154368771001465818`（54368771）：守卫榜名次 ≥22 时接口可能仍返回「超过第20名」类 `nextStep.label`。新增 `utils/appRankNextStepLabel.ts` 将文案中的「第20名」按 `subclassRank - 1` 修正；`pages/app-rank/index.tsx` 按钮区改用修正后文案。已通过本地 `eslint` 校验；逻辑用 `node` 等价推演：25→「第24名」，21→不替换。
+
 ## 2026-03-26
 
 - 新增 `docs/项目交接文档.md`：通用项目交接 Markdown 框架；第 5 章之后相对 feishu 示例文档做了泛化（环境矩阵、第三方集成表、埋点/排障附录等），并为本仓库预留 `pages/`、`pageComponent/`、`service/` 等目录导读示例。
