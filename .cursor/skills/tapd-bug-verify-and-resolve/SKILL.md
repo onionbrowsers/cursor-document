@@ -39,9 +39,32 @@ description: 根据 TAPD Bug ID 查询缺陷详情，在浏览器中验证修复
 - 若 Bug 描述中含**图片**（如 `/tfl/captures/...`），必须按以下流程处理：
   1. 调用 TAPD MCP `get_image(workspace_id, { image_path })` 获取图片下载链接（`download_url`）。
   2. 使用 **image-url-to-local** skill 下载图片到本地：`node .cursor/skills/image-url-to-local/scripts/download-image.js "<download_url>"`，得到本地绝对路径。
-  3. 用 **Read** 工具读取该路径分析图片内容。
+  3. 用 **Read` 工具读取该路径分析图片内容。
   4. 分析完成后立即执行清理：`node .cursor/skills/image-url-to-local/scripts/download-image.js --clean`，避免临时文件残留。
   - **禁止**直接用 `curl` 或 Shell 将图片下载到 `/tmp` 等任意目录，必须通过 image-url-to-local skill 统一管理。
+
+**步骤 1 完成后**：必须先通过下方「获取失败判定」。**仅当已成功取得缺陷标题与描述（及必要的附图理解）后**，才允许进入步骤 2。
+
+---
+
+### 获取 Bug 失败：提示原因并中止流程（强制）
+
+以下任一情况视为**步骤 1 未成功完成**，必须**立即中止**后续步骤 2～6（不得代码定位、不得浏览器验证、不得更新 TAPD、不得凭猜测修 Bug）：
+
+| 失败类型 | 说明（向用户反馈时应写清） |
+|----------|----------------------------|
+| **MCP / 网络 / 接口错误** | 调用 `get_bug`、`get_user_participant_projects`、`get_image` 等返回错误、超时、SSL/TLS 异常、HTTP 错误等，无法拿到可靠数据。 |
+| **查无此缺陷** | 在已解析的 workspace 与参与空间内遍历后，`get_bug` 仍无匹配记录或 `data` 为空。 |
+| **无法唯一定位空间** | 用户未提供 `workspace_id`，且从 bug_id 解析 workspace 失败，且遍历参与项目后仍找不到该 Bug。 |
+| **关键信息不可得** | 验收强依赖描述内附图，但 `get_image` 或本地下载/读图失败，且用户未提供替代说明（粘贴文字或截图）。 |
+
+**失败时必须执行：**
+
+1. **用中文向用户说明原因**：如实概括失败类型（例如「TAPD API 请求失败：SSL 连接中断」「在所有参与项目中未查询到该 Bug ID」），**禁止**编造或推测 Bug 标题、描述与验收标准。
+2. **明确宣告流程中止**：告知用户当前无法继续 Skill 后续步骤，直至缺陷内容可被可靠获取。
+3. **给出可操作的恢复建议**：如检查网络/VPN、确认 TAPD MCP 凭证、稍后重试；或请用户在 TAPD 网页打开该缺陷，将**标题、描述、验收要点**（及必要截图）粘贴到对话中，再在新的对话轮次中从「步骤 2」接续（若仍无官方描述则仍不得臆测开发）。
+
+---
 
 ### 步骤 2：根据 Bug 描述定位相关代码
 
