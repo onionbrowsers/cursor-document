@@ -1,6 +1,6 @@
 ---
 name: tapd-bug-verify-and-resolve
-description: 根据 TAPD Bug ID 查询缺陷详情，在浏览器中验证修复后，经用户确认再将 Bug 状态更新为已解决并填写问题原因与解决方案。适用于任意项目与 TAPD 空间。触发词：验证 bug 修复、bug 改已解决、根据 bug id 验证并关闭、bug 验证后更新状态。
+description: 根据 TAPD Bug ID 查询缺陷详情，在浏览器中验证修复后，经用户确认再将 Bug 状态更新为已解决并填写问题原因与解决方案。若 get_bug 等拉取失败须向用户说明原因并中止全流程，禁止臆测需求继续改代码。适用于任意项目与 TAPD 空间。触发词：验证 bug 修复、bug 改已解决、根据 bug id 验证并关闭、bug 验证后更新状态。
 ---
 
 # TAPD Bug 验证并关闭
