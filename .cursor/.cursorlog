@@ -2,7 +2,7 @@
 
 ## 2026-03-27
 
-- TAPD `1154368771001465818`（54368771）：守卫榜底栏**分差文案**修正——名次晚于 TOP20 时由「距上一名还差」改为「距第 N 名还差」（N=`subclassRank-1`）。实现：`utils/appRankScoreGapCopy.ts` + `pages/app-rank/index.tsx` 仅改 `myGap` 区域；**不修改**按钮 `nextStep.label`。开发态可加 `__useAppRankMock=1` 走 `koa-server/mock/appRankData.json`（已补充 activityInfo、第 16～20 名、当前用户第 25 名）便于本地/浏览器验证。已用 cursor-ide-browser 打开 `http://localhost:3002/precision-study/app-rank?clazzLessonNumber=demo&__useAppRankMock=1` 截图确认展示「距第24名还差 10 分」。
+- TAPD `1154368771001465818`（54368771）：守卫榜底栏分差对齐 Bug 语义——名次晚于第 20 名时展示「距第20名还差」，分值为**当前得分与榜单第 20 名得分之差**（与「再得 X 分即可超过第 20 名」一致）；TOP20 内仍为「距上一名还差」+ 接口 `scoreGap`。找不到 `subclassRank===20` 的榜单项时回退接口文案与分差。实现见 `utils/appRankScoreGapCopy.ts` 的 `getGuardRankBottomGapBarCopy`。
 
 ## 2026-03-26
 
