@@ -2,7 +2,6 @@
 
 ## 2026-03-27
 
-- `/git-commit`：`koa-server/mock/appRankData.json`（当前用户 mock 为孙七/第 5 名等）、`pages/app-rank/index.tsx`（`podiumWrapper` 包裹领奖台与列表）、`pages/app-rank/style.module.less`（滚动区、列表行与底栏样式等）；commit `feat: 优化应用排行榜领奖台与列表区域布局及样式`（`027e11d3`）；pre-commit 中 mew 在 Node v23 下仍崩溃，已 `--no-verify` 后 push 至 `origin/feature-20260318-appNewHome`。
 - 更新 `.cursor/skills/tapd-bug-verify-and-resolve/SKILL.md`：新增「获取 Bug 失败」强制规则——MCP/网络错误、查无缺陷、无法定位空间或关键附图不可得时，须向用户说明原因并**中止**步骤 2～6，禁止臆测需求；frontmatter description 与注意事项同步补充。
 - 守卫榜底栏：`pages/app-rank/index.tsx` 当 `subclassRank > 20` 时第二行为「再得 {scoreGap} 分即可超过第20名」，否则「距上一名还差 {scoreGap} 分」；`scoreGap` 全部由后端返回。mock 中当前用户名次 21、`scoreGap` 20。开发环境 `app_rank_mock=1` 可走本地 mock。
 
