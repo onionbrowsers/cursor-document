@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Git post-commit hook：每次 commit 后同步 .cursor 到 cursor-document 仓库
+# 由 git config core.hooksPath .cursor/scripts/git-hooks 激活（可被 git 追踪）
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SYNC_SCRIPT="$SCRIPT_DIR/../sync-cursor-to-document.sh"
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+if [[ ! -x "$SYNC_SCRIPT" ]]; then
+  exit 0
+fi
+
+"$SYNC_SCRIPT" "$PROJECT_ROOT" &

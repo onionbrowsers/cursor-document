@@ -1,0 +1,199 @@
+---
+description: 性能优化规范 - 适用于 React 组件的渲染优化与资源加载规范
+globs: ["**/*.tsx"]
+alwaysApply: false
+---
+
+# 性能优化规范
+
+## React 渲染优化
+
+### useMemo
+
+- 仅对计算开销较大的衍生值使用 `useMemo`
+- 禁止对简单计算或原始类型值使用 `useMemo`（过度优化反而增加开销）
+- 依赖项必须精确，避免遗漏导致缓存失效，或多余导致频繁重算
+
+```typescript
+// ✅ 正确 - 对复杂计算结果缓存
+const sortedList = useMemo(
+  () => rawList.sort((a, b) => b.score - a.score),
+  [rawList],
+);
+
+// ❌ 错误 - 对简单字符串拼接使用 useMemo
+const title = useMemo(() => `${firstName} ${lastName}`, [firstName, lastName]);
+// 直接写：const title = `${firstName} ${lastName}`;
+```
+
+### useCallback
+
+- 仅在将函数作为 props 传递给子组件，且子组件已用 `React.memo` 包裹时，才使用 `useCallback`
+- 禁止对不作为 props 传递的内部函数使用 `useCallback`
+
+```typescript
+// ✅ 正确 - 稳定的回调传给 memo 子组件
+const handleSubmit = useCallback(
+  (values: IFormValues) => {
+    submitForm(values);
+  },
+  [submitForm],
+);
+
+return <MemoizedForm onSubmit={handleSubmit} />;
+
+// ❌ 错误 - 函数只在内部使用，无需 useCallback
+const handleToggle = useCallback(() => {
+  setVisible((v) => !v);
+}, []);
+```
+
+### React.memo
+
+- 对纯展示型子组件使用 `React.memo`，避免父组件重渲染时不必要的子组件更新
+- 若组件每次渲染时 props 都会变化（如内联对象、函数），`React.memo` 无效，应先解决 props 稳定性问题
+
+```typescript
+// ✅ 正确
+const ScoreItem = React.memo(({ label, value }: IScoreItemProps) => {
+  return (
+    <div>
+      <span>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+});
+
+// ❌ 错误 - 每次都传入新对象，memo 无效
+return <ScoreItem style={{ color: 'red' }} />;
+// 应将 style 提到组件外部定义为常量
+```
+
+### 避免不必要的重渲染
+
+- 将频繁变化的状态下沉到更小粒度的子组件，而不是放在顶层组件
+- 使用 `useState` 的函数式更新形式，避免将 state 作为 `useCallback` 的依赖
+
+```typescript
+// ✅ 正确 - 函数式更新，无需将 count 加入依赖
+const handleIncrement = useCallback(() => {
+  setCount((prev) => prev + 1);
+}, []);
+
+// ❌ 错误 - count 变化会导致 handleIncrement 重新创建
+const handleIncrement = useCallback(() => {
+  setCount(count + 1);
+}, [count]);
+```
+
+---
+
+## 列表渲染优化
+
+### key 的使用
+
+- 列表渲染必须为每个子元素提供稳定且唯一的 `key`
+- 禁止使用数组下标（`index`）作为 `key`，除非列表是静态的且不会重排序
+
+```typescript
+// ✅ 正确
+{list.map((item) => (
+  <ListItem key={item.id} item={item} />
+))}
+
+// ❌ 错误
+{list.map((item, index) => (
+  <ListItem key={index} item={item} />
+))}
+```
+
+### 长列表虚拟化
+
+- 当列表项超过 **100 条**时，必须使用虚拟滚动（如 `react-virtual` 或 `@tanstack/react-virtual`）
+- 禁止在无虚拟滚动的情况下一次性渲染大量 DOM 节点
+
+---
+
+## 代码分割与懒加载
+
+### 路由级懒加载
+
+- 页面级组件必须使用 `React.lazy` + `Suspense` 进行懒加载
+- 每个路由对应的 chunk 应独立，避免首屏加载过重
+
+```typescript
+// ✅ 正确 - Next.js dynamic import
+import dynamic from 'next/dynamic';
+
+const HeavyChart = dynamic(() => import('@/components/HeavyChart'), {
+  loading: () => <Skeleton />,
+  ssr: false,
+});
+```
+
+### 条件懒加载
+
+- 仅在用户触发交互（如点击、hover）后才需要展示的重量级组件，使用动态导入延迟加载
+
+---
+
+## 图片与资源优化
+
+- 使用 Next.js `<Image>` 组件代替原生 `<img>`，自动处理懒加载、尺寸优化和格式转换
+- 为图片指定 `width` 和 `height`，避免 CLS（累积布局偏移）
+- SVG 图标优先使用内联 SVG 或 SVG sprite，减少请求数
+
+```typescript
+// ✅ 正确
+import Image from 'next/image';
+
+<Image src="/logo.png" alt="Logo" width={120} height={40} priority />;
+
+// ❌ 错误
+<img src="/logo.png" alt="Logo" />;
+```
+
+---
+
+## 数据请求优化
+
+### 避免瀑布请求
+
+- 同级的并行请求使用 `Promise.all` 同时发起，而不是顺序等待
+- 在 Next.js Server Component 中，利用并行数据获取减少首屏时间
+
+```typescript
+// ✅ 正确 - 并行请求
+const [userInfo, scoreList] = await Promise.all([
+  fetchUserInfo(userId),
+  fetchScoreList(userId),
+]);
+
+// ❌ 错误 - 串行请求
+const userInfo = await fetchUserInfo(userId);
+const scoreList = await fetchScoreList(userId);
+```
+
+### 请求缓存
+
+- 使用 SWR 或 React Query 管理客户端数据请求，避免手动维护 `loading/error/data`
+- 合理配置 `staleTime`、`cacheTime`，减少重复请求
+
+```typescript
+// ✅ 正确 - 使用 SWR
+const { data, error, isLoading } = useSWR(
+  `/api/user/${userId}`,
+  fetchUserInfo,
+  { revalidateOnFocus: false },
+);
+```
+
+---
+
+## 禁止事项
+
+- 禁止在 render 阶段执行耗时的同步计算（如排序、过滤大数组），必须用 `useMemo` 缓存
+- 禁止在 `useEffect` 中无条件发起请求（必须声明依赖项或添加条件判断）
+- 禁止将整个大对象作为 `useEffect`/`useMemo`/`useCallback` 的依赖，应解构出具体字段
+- 禁止在循环或条件语句中调用 Hooks
+- 禁止在列表渲染中使用内联函数作为事件处理器（应提取为命名函数或 `useCallback`）

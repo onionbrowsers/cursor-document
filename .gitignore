@@ -1,0 +1,8 @@
+# 本地生成的临时标志文件
+.needs-capability-update
+
+# 本地 docs 目录（本地项目特有，不同步到 GitHub）
+docs/
+
+# 本地日志
+*.log

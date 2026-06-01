@@ -1,0 +1,213 @@
+---
+description: 错误处理规范 - 适用于所有 TypeScript 和 TSX 文件的异步操作与错误边界规范
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# 错误处理规范
+
+## 异步操作错误处理
+
+### 基本原则
+
+- 所有 `async/await` 操作必须包裹在 `try-catch` 中
+- 禁止使用 `.then().catch()` 链式写法（除非是第三方 SDK 强制要求）
+- `catch` 块中必须有实质性处理逻辑，禁止空 `catch` 块
+
+```typescript
+// ✅ 正确
+const fetchUserData = async (userId: string) => {
+  try {
+    const data = await getUserById(userId);
+    return data;
+  } catch (error) {
+    console.error('[fetchUserData] 获取用户数据失败:', error);
+    throw error;
+  }
+};
+
+// ❌ 错误 - 空 catch
+const fetchUserData = async (userId: string) => {
+  try {
+    const data = await getUserById(userId);
+    return data;
+  } catch (error) {
+    // 什么都不做
+  }
+};
+```
+
+### 错误类型判断
+
+- 使用类型守卫判断 `error` 的具体类型，避免直接强制断言
+
+```typescript
+const isError = (error: unknown): error is Error => {
+  return error instanceof Error;
+};
+
+const handleApiError = (error: unknown) => {
+  if (isError(error)) {
+    console.error('错误信息:', error.message);
+    console.error('错误堆栈:', error.stack);
+  } else {
+    console.error('未知错误:', error);
+  }
+};
+```
+
+---
+
+## API 请求错误处理
+
+### 统一错误响应结构
+
+定义统一的 API 响应类型：
+
+```typescript
+/** @description API 统一响应结构 */
+interface IApiResponse<T> {
+  /** 业务状态码，0 表示成功 */
+  code: number;
+  /** 响应数据 */
+  data: T;
+  /** 错误信息 */
+  message: string;
+}
+
+/** @description API 错误类 */
+class ApiError extends Error {
+  constructor(
+    public readonly code: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+```
+
+### 请求封装规范
+
+- 在请求拦截器中统一处理 HTTP 层错误（401、403、500 等）
+- 在响应拦截器中统一处理业务层错误（`code !== 0`）
+- 业务层抛出 `ApiError`，调用方 `catch` 后根据 `code` 决定处理策略
+
+```typescript
+// ✅ 响应拦截器示例
+const responseInterceptor = (response: IApiResponse<unknown>) => {
+  if (response.code !== 0) {
+    throw new ApiError(response.code, response.message);
+  }
+  return response.data;
+};
+```
+
+---
+
+## React 组件中的错误处理
+
+### 异步数据加载
+
+- 使用 `loading`、`error`、`data` 三态管理异步状态
+- 错误状态下必须展示用户友好的提示信息，不得直接展示技术错误信息
+
+```typescript
+const UserProfile = ({ userId }: { userId: string }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<IUser | null>(null);
+
+  const handleFetchUser = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchUserById(userId);
+      setUser(data);
+    } catch (err) {
+      setError('获取用户信息失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <Loading />;
+  if (error) return <ErrorMessage message={error} />;
+  if (!user) return null;
+
+  return <div>{user.name}</div>;
+};
+```
+
+### Error Boundary
+
+- 为页面级组件或重要功能模块包裹 `ErrorBoundary`
+- `ErrorBoundary` 必须提供降级 UI，不得让整个页面白屏
+- 建议配合错误上报服务（如 Sentry）使用
+
+```typescript
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback?: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary] 捕获到组件错误:', error, info);
+    // reportError(error, info); // 上报至监控平台
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? <div>页面加载失败，请刷新重试</div>;
+    }
+    return this.props.children;
+  }
+}
+```
+
+---
+
+## 表单与用户输入错误处理
+
+- 提交前必须做客户端校验，减少不必要的网络请求
+- 服务端返回的字段级错误信息，需映射回对应表单字段展示
+- 网络错误与业务错误需区分提示文案
+
+```typescript
+const handleSubmit = async (values: IFormValues) => {
+  // 客户端校验
+  const validationError = validateForm(values);
+  if (validationError) {
+    setFieldError(validationError.field, validationError.message);
+    return;
+  }
+
+  try {
+    await submitForm(values);
+    message.success('提交成功');
+  } catch (err) {
+    if (err instanceof ApiError) {
+      // 业务错误：展示具体原因
+      message.error(err.message);
+    } else {
+      // 网络/未知错误：通用提示
+      message.error('提交失败，请检查网络后重试');
+    }
+  }
+};
+```
+
+---
+
+## 禁止事项
+
+- 禁止 `catch (e) {}` 空 catch 块
+- 禁止在组件的 render 路径中抛出未处理异常
+- 禁止直接将技术错误信息（如堆栈、接口响应原文）展示给用户
+- 禁止在 `finally` 块中覆盖 `catch` 中设置的错误状态
+- 禁止忽略 Promise rejection（必须 `await` 或 `.catch()` 处理）

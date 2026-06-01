@@ -1,0 +1,187 @@
+---
+description: TypeScript 命名与类型规范 - 适用于所有 TypeScript 文件
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# TypeScript 规范
+
+## 命名规范
+
+### 类型定义前缀
+
+- **Interface** 必须以 `I` 开头
+  ```ts
+  interface IUserProps { ... }
+  interface IApiResponse<T> { ... }
+  ```
+
+- **Enum** 必须以 `E` 开头
+  ```ts
+  enum EUserRole { Admin, User, Guest }
+  enum EOrderStatus { Pending, Paid, Shipped }
+  ```
+
+- **Type Alias** 必须以 `T` 开头
+  ```ts
+  type TUserState = 'active' | 'inactive';
+  type TEventHandler = (event: Event) => void;
+  ```
+
+- **泛型类型**：使用大写单字母或有意义的名称
+  ```ts
+  // 简单泛型
+  function identity<T>(arg: T): T { return arg; }
+
+  // 多泛型，使用语义化名称
+  function mapObject<Key extends string, Value>(obj: Record<Key, Value>): Value[] { ... }
+  ```
+
+### 数组类型声明
+
+- 统一使用 `T[]` 格式，不使用 `Array<T>`
+  ```ts
+  // 推荐
+  const users: IUser[] = [];
+  const ids: string[] = [];
+
+  // 避免
+  const users: Array<IUser> = [];
+  ```
+
+### 文件命名
+
+- **组件文件**：使用 PascalCase，如 `UserProfile.tsx`
+- **工具/钩子文件**：使用 camelCase，如 `useAuth.ts`、`formatDate.ts`
+- **类型定义文件**：使用 camelCase，如 `userTypes.ts`
+- **常量文件**：使用 camelCase，如 `apiConstants.ts`
+
+## 类型安全
+
+### 避免使用 any
+
+```ts
+// 避免
+const handleData = (data: any) => { ... };
+
+// 推荐：使用 unknown 并添加类型守卫
+const handleData = (data: unknown) => {
+  if (typeof data === 'string') {
+    console.log(data.toUpperCase());
+  }
+};
+```
+
+### 善用类型收窄
+
+```ts
+const processUser = (user: IUser | null) => {
+  // 提前返回处理空值
+  if (!user) return;
+
+  // 此处 user 类型已被收窄为 IUser
+  console.log(user.name);
+};
+```
+
+### 使用 as const 定义字面量常量
+
+```ts
+const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
+type TDirection = typeof DIRECTIONS[number]; // 'up' | 'down' | 'left' | 'right'
+```
+
+## 接口与类型别名
+
+### 何时使用 interface vs type
+
+- **interface**：用于定义对象结构，支持声明合并，适合描述数据模型
+  ```ts
+  interface IUser {
+    id: string;
+    name: string;
+    role: EUserRole;
+  }
+  ```
+
+- **type**：用于联合类型、交叉类型、复杂类型组合
+  ```ts
+  type TApiResult<T> = { data: T; error: null } | { data: null; error: string };
+  type TPartialUser = Partial<IUser> & { id: string };
+  ```
+
+## 枚举规范
+
+```ts
+/**
+ * @description 用户角色枚举
+ */
+enum EUserRole {
+  /** 管理员 */
+  Admin = 'admin',
+  /** 普通用户 */
+  User = 'user',
+  /** 访客 */
+  Guest = 'guest',
+}
+```
+
+- 枚举值推荐使用字符串值（非数字），便于调试和序列化
+- 每个枚举成员必须有注释说明
+
+## 函数类型
+
+```ts
+// 推荐：使用 const + 箭头函数
+const fetchUser = async (id: string): Promise<IUser> => {
+  const user = await api.get<IUser>(`/users/${id}`);
+  return user;
+};
+
+// 函数参数类型显式声明
+const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  event.preventDefault();
+  // ...
+};
+```
+
+## 工具类型的运用
+
+常用 TypeScript 内置工具类型：
+
+```ts
+// Partial - 所有属性可选
+type TUpdateUser = Partial<IUser>;
+
+// Required - 所有属性必填
+type TRequiredUser = Required<IUser>;
+
+// Pick - 选取部分属性
+type TUserPreview = Pick<IUser, 'id' | 'name'>;
+
+// Omit - 排除部分属性
+type TUserWithoutPassword = Omit<IUser, 'password'>;
+
+// Record - 键值对映射
+type TUserMap = Record<string, IUser>;
+
+// ReturnType - 获取函数返回类型
+type TFetchResult = ReturnType<typeof fetchUser>;
+```
+
+## 严格模式配置
+
+`tsconfig.json` 必须开启以下配置：
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true
+  }
+}
+```
