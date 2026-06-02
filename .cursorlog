@@ -180,3 +180,25 @@
 - 补充日常维护流程、禁用归档规则、安全与提交规范、常见问题。
 
 ---
+
+## 2026-06-02 新增个人全局 Cursor 软链接初始化 Skill
+
+### 修改文件
+
+- `/Users/mac/.cursor/skills/cursor-shared-config-link/SKILL.md`
+- `/Users/mac/.cursor/skills/cursor-shared-config-link/scripts/install-shared-cursor.sh`
+- `.cursor/README.md`
+
+### 修改说明
+
+新增用户级全局 Skill `cursor-shared-config-link`，用于在新项目中一键安装共享 Cursor 配置。该 Skill 会调用脚本，将当前项目的 `.cursor` 软链接到本机中央配置目录 `~/.cursor/shared-config`。
+
+### 主要能力
+
+- 默认从 `https://github.com/onionbrowsers/cursor-document.git` 初始化中央配置目录。
+- 当前项目不存在 `.cursor` 时，自动创建 `.cursor -> ~/.cursor/shared-config` 软链接。
+- 当前项目已有 `.cursor` 时默认不覆盖；需要替换时需显式设置 `CURSOR_LINK_REPLACE=1`。
+- 中央配置目录存在未提交改动时，跳过自动 pull，避免覆盖本地变更。
+- README 补充了个人单机软链接方案的使用说明。
+
+---
