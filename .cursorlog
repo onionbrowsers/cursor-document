@@ -27,6 +27,11 @@
 - 对旧索引/旧历史中的 `cron-run-*` assistant 消息做窄规则清洗，移除末尾完全由“耗时/模型”组成的运行元信息段。
 - 更新相关单测覆盖标题解析、cron 历史展示和 session-index 期望。
 
+### 追加修正
+
+- 支持清洗只有单换行分隔的尾部运行元信息，例如 `正文\n耗时：132s | 模型：provider/model`。
+- 在 `execution.finished.summary` 已经包含运行元信息时，也会在 main 侧 cron projection 源头剥离，避免重新进入 session-index 或 fallback 历史。
+
 ---
 
 ## [2026-03-03] Cursor Rules 规范体系整理
