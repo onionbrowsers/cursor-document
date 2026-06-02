@@ -92,7 +92,21 @@ git commit -m "chore(cursor): 更新共享 Cursor 配置"
 ln -s /path/to/cursor-document /path/to/project/.cursor
 ```
 
-该方式不适合团队协作，也不适合需要提交到远程仓库的项目。
+如果只考虑个人本机多个项目共用同一套配置，可以使用全局 Skill `cursor-shared-config-link` 一键初始化。该 Skill 会调用本机脚本，将当前项目的 `.cursor` 软链接到 `~/.cursor/shared-config`：
+
+```bash
+/Users/mac/.cursor/skills/cursor-shared-config-link/scripts/install-shared-cursor.sh "/path/to/project"
+```
+
+默认远程仓库为：
+
+```text
+https://github.com/onionbrowsers/cursor-document.git
+```
+
+初始化后，所有已接入项目都会指向同一份本机 `.cursor` 配置；在任意项目修改 `.cursor`，实际修改的都是同一个中央目录。
+
+该方式适合个人单机开发，不适合团队协作。如果项目已有普通 `.cursor` 目录，脚本默认不会覆盖；确认需要替换时，可设置 `CURSOR_LINK_REPLACE=1` 后重试。
 
 ## 日常维护流程
 
