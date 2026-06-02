@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Cursor afterFileEdit hook：当 .cursor 配置仓库下（非 docs）文件被编辑时，
-# 直接在该 .cursor 配置仓库里 git add + commit + push 到 GitHub。
+# 在该 .cursor 配置仓库里汇总执行 git add + commit + push 到 GitHub。
 # 兼容项目内 .cursor 软链接到 ~/.cursor/shared-config 的场景。
+
+SYNC_DEBOUNCE_SECONDS="${CURSOR_SYNC_DEBOUNCE_SECONDS:-20}"
+PUSH_TIMEOUT_SECONDS="${CURSOR_SYNC_PUSH_TIMEOUT_SECONDS:-120}"
 
 INPUT=$(cat)
 if command -v jq &>/dev/null; then
@@ -50,16 +53,68 @@ if [[ ! -f "$CURSOR_DIR/hooks.json" && ! -d "$CURSOR_DIR/rules" && ! -d "$CURSOR
   exit 0
 fi
 
-# 后台异步执行，避免阻塞 Cursor
+GIT_DIR="$CURSOR_DIR/.git"
+LOCK_DIR="$GIT_DIR/cursor-sync.lock"
+LOG_FILE="$GIT_DIR/cursor-sync.log"
+
+log() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG_FILE"
+}
+
+run_with_timeout() {
+  local timeout_seconds="$1"
+  shift
+
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$timeout_seconds" "$@"
+    return $?
+  fi
+
+  if command -v perl >/dev/null 2>&1; then
+    perl -e 'alarm shift; exec @ARGV' "$timeout_seconds" "$@"
+    return $?
+  fi
+
+  "$@"
+}
+
+# 后台异步执行，避免阻塞 Cursor；同一时间只允许一个同步任务运行。
 (
-  cd "$CURSOR_DIR" || exit 0
-  git add -A
-  if git diff --staged --quiet; then
+  if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+    log "已有同步任务运行，跳过本次触发: $FILE_PATH"
     exit 0
   fi
+
+  trap 'rm -rf "$LOCK_DIR"' EXIT
+
+  log "收到变更: $FILE_PATH，${SYNC_DEBOUNCE_SECONDS}s 后汇总同步"
+  sleep "$SYNC_DEBOUNCE_SECONDS"
+
+  cd "$CURSOR_DIR" || {
+    log "无法进入 Cursor 配置目录: $CURSOR_DIR"
+    exit 0
+  }
+
+  git add -A
+  if git diff --staged --quiet; then
+    log "无暂存变更，跳过 commit/push"
+    exit 0
+  fi
+
   CHANGED_FILE=$(basename "$FILE_PATH")
-  git commit -m "chore: 更新 ${CHANGED_FILE}"
-  git push origin main
+  if ! git commit -m "chore: 更新 ${CHANGED_FILE}" >> "$LOG_FILE" 2>&1; then
+    log "git commit 失败，请检查仓库状态"
+    exit 0
+  fi
+
+  log "开始 push origin main，超时时间 ${PUSH_TIMEOUT_SECONDS}s"
+  if run_with_timeout "$PUSH_TIMEOUT_SECONDS" git push origin main >> "$LOG_FILE" 2>&1; then
+    log "push 成功"
+    exit 0
+  fi
+
+  PUSH_EXIT_CODE=$?
+  log "push 失败或超时，退出码: $PUSH_EXIT_CODE；可手动执行：git -C \"$CURSOR_DIR\" push origin main"
 ) &
 
 # 写入能力更新标志文件
