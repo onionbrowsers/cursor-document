@@ -202,3 +202,25 @@
 - README 补充了个人单机软链接方案的使用说明。
 
 ---
+
+## 2026-06-02 加固 Cursor Hook 软链接识别逻辑
+
+### 修改文件
+
+- `hooks/after-file-edit-sync.sh`
+- `scripts/README.md`
+
+### 修改说明
+
+调整 `afterFileEdit` 自动提交脚本，使其兼容项目 `.cursor` 软链接到 `~/.cursor/shared-config` 的场景，并明确只在 `.cursor` 配置仓库内执行 `git add`、`commit`、`push`。
+
+### 主要改动
+
+- 增加 `realpath` 解析，识别软链接真实路径。
+- 优先识别 `~/.cursor/shared-config`，避免该路径中的 `/.cursor/` 被误判为项目 `.cursor`。
+- 保留项目内 `.cursor` 路径识别，兼容非软链接独立仓库。
+- 增加 Cursor 配置仓库特征校验，避免误提交业务项目仓库。
+- `.needs-capability-update` 写入 `.cursor` 配置仓库根目录。
+- 补充脚本文档，说明 hook 兼容软链接共享配置场景。
+
+---
