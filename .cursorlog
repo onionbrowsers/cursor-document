@@ -2,6 +2,33 @@
 
 ---
 
+## 2026-06-02 修复 Cron 会话标题与运行元信息展示
+
+### 修改文件
+
+- `src/lib/session-display-title.ts`
+- `src/stores/chat.ts`
+- `src/stores/chat/cron-session-utils.ts`
+- `electron/utils/cron-session-projection.ts`
+- `tests/unit/session-display-title.test.ts`
+- `tests/unit/cron-history-display.test.ts`
+- `tests/unit/session-index-scanner.test.ts`
+- `tests/src/stores/chat-cron-history.test.ts`
+
+### 修改说明
+
+修复定时任务执行历史回放时，会话标题被 `[cron:<jobId> ...]` 运行包装污染或被过滤为空的问题；同时移除 cron fallback 投影中自动拼接到 assistant 正文末尾的“耗时/模型”运行元信息。
+
+### 主要改动
+
+- Cron 标题解析优先从 `[cron:<jobId> <任务名>]` 中提取任务名，避免使用后续 prompt 作为标题。
+- Chat 历史加载时从“定时任务：xxx”元信息回填 session label，避免顶部标题为空。
+- Cron run 投影不再把 `durationMs/provider/model` 拼接进 assistant 可见文本。
+- 对旧索引/旧历史中的 `cron-run-*` assistant 消息做窄规则清洗，移除末尾完全由“耗时/模型”组成的运行元信息段。
+- 更新相关单测覆盖标题解析、cron 历史展示和 session-index 期望。
+
+---
+
 ## [2026-03-03] Cursor Rules 规范体系整理
 
 ### 操作概述
