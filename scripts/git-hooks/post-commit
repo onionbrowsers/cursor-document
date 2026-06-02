@@ -4,6 +4,8 @@
 
 SYNC_DEBOUNCE_SECONDS="${CURSOR_SYNC_DEBOUNCE_SECONDS:-20}"
 PUSH_TIMEOUT_SECONDS="${CURSOR_SYNC_PUSH_TIMEOUT_SECONDS:-120}"
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 CURSOR_DIR="$PROJECT_ROOT/.cursor"
@@ -39,37 +41,39 @@ run_with_timeout() {
 
 (
   if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    log "已有同步任务运行，跳过 post-commit 触发"
+    log "sync already running; skip post-commit trigger"
     exit 0
   fi
 
   trap 'rm -rf "$LOCK_DIR"' EXIT
 
-  log "收到 post-commit 触发，${SYNC_DEBOUNCE_SECONDS}s 后汇总同步"
+  log "post-commit trigger received; sync after ${SYNC_DEBOUNCE_SECONDS}s debounce"
   sleep "$SYNC_DEBOUNCE_SECONDS"
 
   cd "$CURSOR_DIR" || {
-    log "无法进入 Cursor 配置目录: $CURSOR_DIR"
+    log "failed to enter cursor config dir: $CURSOR_DIR"
     exit 0
   }
 
   git add -A
   if git diff --staged --quiet; then
-    log "无暂存变更，跳过 post-commit commit/push"
+    log "no staged changes; skip post-commit commit/push"
     exit 0
   fi
 
   if ! git commit -m "chore: 同步 .cursor 变更（触发自 post-commit）" >> "$LOG_FILE" 2>&1; then
-    log "post-commit git commit 失败，请检查仓库状态"
+    log "post-commit git commit failed; check repository status"
     exit 0
   fi
 
-  log "post-commit 开始 push origin main，超时时间 ${PUSH_TIMEOUT_SECONDS}s"
-  if run_with_timeout "$PUSH_TIMEOUT_SECONDS" git push origin main >> "$LOG_FILE" 2>&1; then
-    log "post-commit push 成功"
-    exit 0
-  fi
-
+  log "post-commit start push origin main; timeout=${PUSH_TIMEOUT_SECONDS}s"
+  run_with_timeout "$PUSH_TIMEOUT_SECONDS" git push origin main >> "$LOG_FILE" 2>&1
   PUSH_EXIT_CODE=$?
-  log "post-commit push 失败或超时，退出码: $PUSH_EXIT_CODE；可手动执行：git -C \"$CURSOR_DIR\" push origin main"
+
+  if [[ "$PUSH_EXIT_CODE" -eq 0 ]]; then
+    log "post-commit push succeeded"
+    exit 0
+  fi
+
+  log "post-commit push failed or timed out; exit_code=$PUSH_EXIT_CODE; manual command: git -C \"$CURSOR_DIR\" push origin main"
 ) &

@@ -224,3 +224,26 @@
 - 补充脚本文档，说明 hook 兼容软链接共享配置场景。
 
 ---
+
+## 2026-06-02 优化 Cursor 配置自动同步 Hook
+
+### 修改文件
+
+- `hooks/after-file-edit-sync.sh`
+- `scripts/git-hooks/post-commit`
+
+### 修改说明
+
+定位 `.cursor` 自动同步到 GitHub 偶发慢和超时的问题，主要风险来自文件编辑 hook 与
+Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生多个并发推送。
+
+### 主要改动
+
+- 保留自动 `push` 行为，不改为只 commit。
+- 新增 `.git/cursor-sync.lock` 目录锁，同一时间只允许一个同步任务运行。
+- 新增 `CURSOR_SYNC_DEBOUNCE_SECONDS` 防抖窗口，默认等待 20 秒后汇总提交。
+- 新增 `CURSOR_SYNC_PUSH_TIMEOUT_SECONDS` 推送超时配置，默认 120 秒。
+- 新增 `.git/cursor-sync.log` 本地日志，使用 ASCII 文案记录触发来源、commit、push 成功/失败与超时信息，避免不同 hook 环境下日志编码异常。
+- `afterFileEdit` 与 `post-commit` 共用同一锁和日志，避免两个入口互相抢推。
+
+---

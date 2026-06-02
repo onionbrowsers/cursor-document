@@ -5,6 +5,8 @@
 
 SYNC_DEBOUNCE_SECONDS="${CURSOR_SYNC_DEBOUNCE_SECONDS:-20}"
 PUSH_TIMEOUT_SECONDS="${CURSOR_SYNC_PUSH_TIMEOUT_SECONDS:-120}"
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 INPUT=$(cat)
 if command -v jq &>/dev/null; then
@@ -81,40 +83,42 @@ run_with_timeout() {
 # 后台异步执行，避免阻塞 Cursor；同一时间只允许一个同步任务运行。
 (
   if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    log "已有同步任务运行，跳过本次触发: $FILE_PATH"
+    log "sync already running; skip trigger: $FILE_PATH"
     exit 0
   fi
 
   trap 'rm -rf "$LOCK_DIR"' EXIT
 
-  log "收到变更: $FILE_PATH，${SYNC_DEBOUNCE_SECONDS}s 后汇总同步"
+  log "change received: $FILE_PATH; sync after ${SYNC_DEBOUNCE_SECONDS}s debounce"
   sleep "$SYNC_DEBOUNCE_SECONDS"
 
   cd "$CURSOR_DIR" || {
-    log "无法进入 Cursor 配置目录: $CURSOR_DIR"
+    log "failed to enter cursor config dir: $CURSOR_DIR"
     exit 0
   }
 
   git add -A
   if git diff --staged --quiet; then
-    log "无暂存变更，跳过 commit/push"
+    log "no staged changes; skip commit/push"
     exit 0
   fi
 
   CHANGED_FILE=$(basename "$FILE_PATH")
   if ! git commit -m "chore: 更新 ${CHANGED_FILE}" >> "$LOG_FILE" 2>&1; then
-    log "git commit 失败，请检查仓库状态"
+    log "git commit failed; check repository status"
     exit 0
   fi
 
-  log "开始 push origin main，超时时间 ${PUSH_TIMEOUT_SECONDS}s"
-  if run_with_timeout "$PUSH_TIMEOUT_SECONDS" git push origin main >> "$LOG_FILE" 2>&1; then
-    log "push 成功"
-    exit 0
-  fi
-
+  log "start push origin main; timeout=${PUSH_TIMEOUT_SECONDS}s"
+  run_with_timeout "$PUSH_TIMEOUT_SECONDS" git push origin main >> "$LOG_FILE" 2>&1
   PUSH_EXIT_CODE=$?
-  log "push 失败或超时，退出码: $PUSH_EXIT_CODE；可手动执行：git -C \"$CURSOR_DIR\" push origin main"
+
+  if [[ "$PUSH_EXIT_CODE" -eq 0 ]]; then
+    log "push succeeded"
+    exit 0
+  fi
+
+  log "push failed or timed out; exit_code=$PUSH_EXIT_CODE; manual command: git -C \"$CURSOR_DIR\" push origin main"
 ) &
 
 # 写入能力更新标志文件
