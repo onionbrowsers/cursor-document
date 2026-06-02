@@ -161,3 +161,22 @@
 - 关键逻辑节点补充行内中文注释，说明非显而易见的意图
 
 ---
+
+## 2026-06-02 新增 Cursor 配置中心 README
+
+### 修改文件
+
+`README.md`
+
+### 修改说明
+
+新增 `.cursor` 独立仓库的说明文档，介绍配置中心定位、目录结构、Rules/Commands/Skills/Hooks 的职责边界，以及跨项目复用的推荐方案。
+
+### 主要内容
+
+- 说明 `.cursor` 仓库作为跨项目 Cursor 配置中心的用途。
+- 梳理 `rules/`、`commands/`、`skills/`、`hooks/`、`scripts/`、`disabled/` 等目录职责。
+- 推荐使用 Git Submodule 在多个项目中复用同一套 `.cursor` 配置。
+- 补充日常维护流程、禁用归档规则、安全与提交规范、常见问题。
+
+---
