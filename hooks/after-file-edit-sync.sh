@@ -27,10 +27,10 @@ else
 fi
 
 CURSOR_DIR=""
-if [[ "$FILE_PATH" == *"/.cursor/"* ]]; then
-  CURSOR_DIR="${FILE_PATH%/.cursor/*}/.cursor"
-elif [[ "$REAL_FILE_PATH" == "$SHARED_CURSOR_DIR/"* ]]; then
+if [[ "$REAL_FILE_PATH" == "$SHARED_CURSOR_DIR/"* ]]; then
   CURSOR_DIR="$SHARED_CURSOR_DIR"
+elif [[ "$FILE_PATH" == *"/.cursor/"* ]]; then
+  CURSOR_DIR="${FILE_PATH%/.cursor/*}/.cursor"
 else
   exit 0
 fi
