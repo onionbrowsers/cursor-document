@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Cursor afterFileEdit hook：当 .cursor 下（非 docs）文件被编辑时，
-# 直接在 .cursor 目录里 git add + commit + push 到 GitHub
+# Cursor afterFileEdit hook：当 .cursor 配置仓库下（非 docs）文件被编辑时，
+# 直接在该 .cursor 配置仓库里 git add + commit + push 到 GitHub。
+# 兼容项目内 .cursor 软链接到 ~/.cursor/shared-config 的场景。
 
 INPUT=$(cat)
 if command -v jq &>/dev/null; then
@@ -17,19 +18,35 @@ if [[ -z "$FILE_PATH" ]]; then
   exit 0
 fi
 
-# 仅处理 .cursor 下且非 .cursor/docs 的文件
-if [[ "$FILE_PATH" != *"/.cursor/"* ]]; then
-  exit 0
+SHARED_CURSOR_DIR="${CURSOR_SHARED_CONFIG_DIR:-$HOME/.cursor/shared-config}"
+
+if command -v realpath >/dev/null 2>&1; then
+  REAL_FILE_PATH=$(realpath "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
+else
+  REAL_FILE_PATH="$FILE_PATH"
 fi
-if [[ "$FILE_PATH" == *"/.cursor/docs/"* ]] || [[ "$FILE_PATH" == *"/.cursor/docs" ]]; then
+
+CURSOR_DIR=""
+if [[ "$FILE_PATH" == *"/.cursor/"* ]]; then
+  CURSOR_DIR="${FILE_PATH%/.cursor/*}/.cursor"
+elif [[ "$REAL_FILE_PATH" == "$SHARED_CURSOR_DIR/"* ]]; then
+  CURSOR_DIR="$SHARED_CURSOR_DIR"
+else
   exit 0
 fi
 
-# .cursor 目录路径（本身就是独立 git 仓库）
-CURSOR_DIR="${FILE_PATH%/.cursor/*}/.cursor"
+# 仅处理 .cursor 下且非 docs 的文件
+if [[ "$FILE_PATH" == *"/.cursor/docs/"* ]] || [[ "$FILE_PATH" == *"/.cursor/docs" ]] || [[ "$REAL_FILE_PATH" == "$CURSOR_DIR/docs/"* ]] || [[ "$REAL_FILE_PATH" == "$CURSOR_DIR/docs" ]]; then
+  exit 0
+fi
 
 if [[ ! -d "$CURSOR_DIR/.git" ]]; then
-  echo "[cursor-sync] .cursor 未初始化为 git 仓库，跳过" >&2
+  echo "[cursor-sync] .cursor 配置目录未初始化为 git 仓库，跳过: $CURSOR_DIR" >&2
+  exit 0
+fi
+
+if [[ ! -f "$CURSOR_DIR/hooks.json" && ! -d "$CURSOR_DIR/rules" && ! -d "$CURSOR_DIR/skills" && ! -d "$CURSOR_DIR/commands" ]]; then
+  echo "[cursor-sync] 目标目录不是 Cursor 配置仓库，跳过: $CURSOR_DIR" >&2
   exit 0
 fi
 
@@ -46,8 +63,7 @@ fi
 ) &
 
 # 写入能力更新标志文件
-CURSOR_ROOT="${FILE_PATH%/.cursor/*}"
-NEEDS_UPDATE_FILE="$CURSOR_ROOT/.cursor/.needs-capability-update"
+NEEDS_UPDATE_FILE="$CURSOR_DIR/.needs-capability-update"
 echo "changed_at=$(date '+%Y-%m-%d %H:%M:%S')" > "$NEEDS_UPDATE_FILE"
 echo "changed_file=${FILE_PATH}" >> "$NEEDS_UPDATE_FILE"
 
