@@ -9,7 +9,7 @@
 
 ## 自动同步机制
 
-1. **Cursor Hook**（`afterFileEdit`）：在 Cursor 内用 Agent/Tab 编辑 `.cursor` 下非 `docs` 的文件并保存后，会自动执行同步并 push。
+1. **Cursor Hook**（`afterFileEdit`）：在 Cursor 内用 Agent/Tab 编辑 `.cursor` 下非 `docs` 的文件并保存后，会自动执行同步并 push；同时兼容项目 `.cursor` 软链接到 `~/.cursor/shared-config` 的个人单机共享配置场景。
 2. **Git post-commit**：在项目内执行 `git commit` 且本次提交包含 `.cursor` 下非 `docs` 的变更时，会自动执行同步并 push。
 
 ## 新环境安装 Git hook
