@@ -300,6 +300,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-03 侧栏搜索对齐 MasterGo 713:011925
+
+### 改动说明
+
+- `Sidebar.tsx`：搜索框去掉描边/左侧图标/清除钮与蓝色 focus 描边；背景 `rgba(255,255,255,0.8)`；占位「搜索」与 `(⌘+F）` 左右分布、色值 `#D0D0D0`；展开侧栏时 `⌘/Ctrl+F` 聚焦搜索输入。
+
+---
+
 ## 2026-06-03 定时任务复杂 Cron 语义化展示
 
 ### 改动说明
@@ -307,12 +315,5 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `schedule-builder`：新增 `minuteStepHourRangeWeekdays`（如 `*/10 9-18 * * 1-5`）、完善 `hourRangeWeekdays`（如 `0 9-18 * * 1-5`）分类；导出 `parseCronMinuteStepField` / `parseCronHourRangeField` / `parseCronWeekdayField`。
 - `cron-helpers`：`formatDisplayOnlyCronLabel` 输出自然语言，例如「周一至周五 9:00 上午至6:00 下午 每 10 分钟」。
 - i18n：`hourRangeOnWeekdays`、`minuteStepHourRangeOnWeekdays`（四语言）；仍保留 `cronExpression` 作无法解析时的兜底。
-
----
-
-## 2026-06-03 同步 release-610 并更新 MR !174
-
-- 工作区无未提交变更；已 `merge origin/release-610` 并 push `feature-610-hx-fixbug`。
-- 复用已有 MR：`feature-610-hx-fixbug` → `release-610`，更新标题与描述涵盖 cron/i18n/智能体市场改动。
 
 ---
