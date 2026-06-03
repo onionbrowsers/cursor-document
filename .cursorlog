@@ -289,3 +289,13 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 测试：`agent-config.test.ts`、`agent-market-frontend.test.tsx` 各补 1 条用例。
 
 ---
+
+## 2026-06-03 定时任务「任务时间」i18n 缺失修复
+
+### 改动说明
+
+- 在 `src/i18n/locales/{zh,en,zh-TW,ja}/cron.json` 的 `schedule` 下补齐 `cronExpression`、`multiHoursDaily`、`multiMonthsDaily`、`multiMonthDaysAt`；`zh-TW` 另补 `intervalOnWeekdaysMinutes` / `intervalOnWeekdaysHours`。
+- 根因：`formatCronExpressionLabel` 对 `raw` 等分支已调用 `t('schedule.cronExpression')`，缺 key 时 i18next 回退为 key 名；未改 `cron-helpers.ts` 逻辑。
+- 新增 `tests/unit/cron-i18n-schedule-keys.test.ts` 防止 locale 再次漏配。
+
+---
