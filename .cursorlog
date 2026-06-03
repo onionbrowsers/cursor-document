@@ -309,3 +309,10 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - i18n：`hourRangeOnWeekdays`、`minuteStepHourRangeOnWeekdays`（四语言）；仍保留 `cronExpression` 作无法解析时的兜底。
 
 ---
+
+## 2026-06-03 同步 release-610 并更新 MR !174
+
+- 工作区无未提交变更；已 `merge origin/release-610` 并 push `feature-610-hx-fixbug`。
+- 复用已有 MR：`feature-610-hx-fixbug` → `release-610`，更新标题与描述涵盖 cron/i18n/智能体市场改动。
+
+---
