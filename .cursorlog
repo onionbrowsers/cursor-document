@@ -299,3 +299,13 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 新增 `tests/unit/cron-i18n-schedule-keys.test.ts` 防止 locale 再次漏配。
 
 ---
+
+## 2026-06-03 定时任务复杂 Cron 语义化展示
+
+### 改动说明
+
+- `schedule-builder`：新增 `minuteStepHourRangeWeekdays`（如 `*/10 9-18 * * 1-5`）、完善 `hourRangeWeekdays`（如 `0 9-18 * * 1-5`）分类；导出 `parseCronMinuteStepField` / `parseCronHourRangeField` / `parseCronWeekdayField`。
+- `cron-helpers`：`formatDisplayOnlyCronLabel` 输出自然语言，例如「周一至周五 9:00 上午至6:00 下午 每 10 分钟」。
+- i18n：`hourRangeOnWeekdays`、`minuteStepHourRangeOnWeekdays`（四语言）；仍保留 `cronExpression` 作无法解析时的兜底。
+
+---
