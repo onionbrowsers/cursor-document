@@ -308,6 +308,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-03 侧栏导航 796:82851 / 610 四宫格对齐
+
+### 改动说明
+
+- `Sidebar.tsx`：`NavItem` 脱离 `GlassNavItem`，扁平行 32px、13/18；hover/active `#E2E2E2`；新建任务去磨砂与 ⌘K 徽标；智能体市场改用 `CHANNEL_NAV_ICON`。
+- 新增 `newTaskNavIcon.tsx`、`agentMarketNavIcon.tsx`；`mastergo-nav-icons-data.ts` 增加 `NEW_TASK_NAV_ICON`。
+- 分步记录：`.cursor/plans/sidebar-nav-610-step-log.md`；单测 `sidebar-navigation.test.tsx` 导航/搜索断言同步。
+
+---
+
 ## 2026-06-03 定时任务复杂 Cron 语义化展示
 
 ### 改动说明

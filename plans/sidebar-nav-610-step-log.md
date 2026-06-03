@@ -13,10 +13,10 @@
 | 项 | 内容 |
 |----|------|
 | **设计依据** | 行高 32px；文案 13/18；无 `rounded-2xl` / `bg-white/95` |
-| **计划改动** | `NavItem` 改为原生 `div` 行；`min-h-[32px]`；`rounded-[8px]` |
+| **改动** | `NavItem` 改为 `div` + `data-testid="sidebar-nav-item"`；`h-8 min-h-[32px]`；13/18 |
 | **涉及文件** | `Sidebar.tsx` |
 | **验收** | 四项高度一致，无大圆角玻璃底 |
-| **状态** | `pending` |
+| **状态** | `done` |
 
 ---
 
@@ -24,11 +24,11 @@
 
 | 项 | 内容 |
 |----|------|
-| **设计依据** | `732:81593` 无填充；`732:81728` 气泡+加号 14px；`732:81596` #111 regular；无 ⌘K |
-| **计划改动** | 删除 `SIDEBAR_NEW_TASK_GLASS_PILL` / `badge`；新增 `NEW_TASK_NAV_ICON` + `newTaskNavIcon.tsx` |
+| **设计依据** | `732:81593` 无填充；`732:81728` 气泡+加号；`732:81596` #111 regular；无 ⌘K |
+| **改动** | 删除磨砂 pill / badge；`NEW_TASK_NAV_ICON` + `newTaskNavIcon.tsx` |
 | **涉及文件** | `mastergo-nav-icons-data.ts`, `newTaskNavIcon.tsx`, `Sidebar.tsx` |
-| **验收** | 无灰胶囊、无右侧快捷键；图标为描边气泡 |
-| **状态** | `pending` |
+| **验收** | 无灰胶囊、无右侧 ⌘K；描边气泡图标 |
+| **状态** | `done`（全局 ⌘K 快捷键逻辑保留，仅 UI 不展示） |
 
 ---
 
@@ -36,11 +36,11 @@
 
 | 项 | 内容 |
 |----|------|
-| **设计依据** | `732:81572` / `732:81589`：#333333，13/18 regular；图标 14px @ x=16 |
-| **计划改动** | `CronTaskNavIcon` / `InspirationNavIcon` 统一 `h-[14px] w-[14px]`；`tone=muted` |
+| **设计依据** | `732:81572` / `732:81589`：#333333，13/18 regular |
+| **改动** | 图标 `14×14`；`tone=muted` |
 | **涉及文件** | `Sidebar.tsx` |
-| **验收** | 文案 #333，图标 14px |
-| **状态** | `pending` |
+| **验收** | 文案 #333 |
+| **状态** | `done` |
 
 ---
 
@@ -48,11 +48,11 @@
 
 | 项 | 内容 |
 |----|------|
-| **设计依据** | `732:81564` #111 font-weight 500；图标 `732:81568`；非 lucide Store |
-| **计划改动** | `agentMarketNavIcon.tsx` 使用 `CHANNEL_NAV_ICON`；`tone=emphasis` |
+| **设计依据** | `732:81564` #111 font-weight 500；`CHANNEL_NAV_ICON` |
+| **改动** | `agentMarketNavIcon.tsx`；`tone=emphasis` |
 | **涉及文件** | `agentMarketNavIcon.tsx`, `Sidebar.tsx` |
-| **验收** | 三节点网络图标；文案略粗于另两项 |
-| **状态** | `pending` |
+| **验收** | 三节点图标 + medium 文案 |
+| **状态** | `done` |
 
 ---
 
@@ -60,11 +60,11 @@
 
 | 项 | 内容 |
 |----|------|
-| **设计依据** | `732:81570` fill `#E2E2E2`，229×32，圆角约 8px |
-| **计划改动** | `hover:bg-[#E2E2E2]` + `isActive` 同色；去掉 `SIDEBAR_MENU_GLASS_HOVER` 白底 hover |
+| **设计依据** | `732:81570` `#E2E2E2` |
+| **改动** | `SIDEBAR_NAV_ROW_HIGHLIGHT`；`hover:bg-[#E2E2E2]` |
 | **涉及文件** | `Sidebar.tsx` |
-| **验收** | 悬停与选中均为灰条，非白底 |
-| **状态** | `pending` |
+| **验收** | 悬停与路由选中均为灰条 |
+| **状态** | `done`（`/` 新建任务仍 `suppressActive`，不在聊天页显示选中灰底） |
 
 ---
 
@@ -72,11 +72,11 @@
 
 | 项 | 内容 |
 |----|------|
-| **设计依据** | 文案 y：125→155→185，约 30px 节奏 |
-| **计划改动** | `<nav>` 使用 `gap-[6px]` 或等效（相对原 gap-[4px]） |
+| **设计依据** | 文案 y 约 30px 节奏 |
+| **改动** | `<nav>` `gap-[4px]` → `gap-[6px]` |
 | **涉及文件** | `Sidebar.tsx` |
-| **验收** | 四项垂直间距接近设计稿 |
-| **状态** | `pending` |
+| **验收** | 垂直间距略增 |
+| **状态** | `done` |
 
 ---
 
@@ -84,9 +84,10 @@
 
 | 现象 | 优先怀疑步骤 |
 |------|----------------|
-| 仍有磨砂胶囊 / ⌘K | **Step B** 未生效或分支未走到 |
-| 图标仍是黑方块 / Store | **Step B / D** 图标组件未替换 |
-| 选中变白底、圆角过大 | **Step A / E** GlassNavItem 或 hover 类残留 |
-| 文案 12px / semibold | **Step A** NavItem 样式未更新 |
+| 仍有磨砂胶囊 / ⌘K | **Step B** |
+| 图标仍是黑方块 / Store | **Step B / D** |
+| 选中变白底、圆角过大 | **Step A**（误用 GlassNavItem） |
+| 文案 12px / semibold | **Step A** |
 | 灰底仅 active 无 hover | **Step E** |
+| 新建任务在 `/` 也有灰底 | `suppressActive` 产品逻辑，非 Step E |
 | 行距过密 | **Step F** |
