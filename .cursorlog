@@ -279,3 +279,13 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `afterFileEdit` 与 `post-commit` 共用同一锁和日志，避免两个入口互相抢推。
 
 ---
+
+## 2026-06-03 智能体卸载通道转绑提示与后端转绑
+
+### 改动说明
+
+- `AgentUninstallDialog`：若智能体存在通道绑定（含 `agent.bindings` 或微信已绑定），卸载确认文案改为提示通道将自动转绑到 YonClaw；无绑定时保留原文案。
+- `deleteAgentConfig`：删除智能体时，将可转移的通道绑定（微信账号级、非 `agent:` 友空间账号）显式 `ensureChannelBindingToAgent('main', ...)`，修复 UI 显示未绑定但微信仍路由到 main 的不一致。
+- 测试：`agent-config.test.ts`、`agent-market-frontend.test.tsx` 各补 1 条用例。
+
+---
