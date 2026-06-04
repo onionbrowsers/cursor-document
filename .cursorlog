@@ -361,6 +361,17 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 智能体头交互与 Popup 关闭定位修复
+
+### 改动说明
+
+- 置顶图钉：非 hover 时显示；hover / 菜单打开时隐藏，仅保留「更多 + 展开」。
+- 展开按钮：去掉单独 hover 背景，统一由智能体行 hover 高亮。
+- `SidebarAgentMoreMenu`：菜单项通过 `setOpen(false)` 关闭并冻结坐标；智能体详情延后 `queueMicrotask` 再开右侧栏。
+- `Popup`：受控 `open` 变 false 时若尚无冻结坐标则立即捕获，覆盖会话/智能体等所有下拉。
+
+---
+
 ## 2026-06-04 侧栏智能体头 hover 操作与置顶
 
 ### 改动说明
