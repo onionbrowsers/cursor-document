@@ -120,7 +120,7 @@
 |------|--------|---------------|
 | 1 | 收分V4.0+支持战略学科.md | （已转换） |
 | 2 | 收分V4.1.md | （已转换） |
-| 3 | 【已上线】EES内容交接+支持PDF试卷分析.md | （已转换） |
+| 3 | 【已上线】EES内容交接+支持PDF试卷分析.md | （已转换） |222
 | 4 | 【已上线】企微收集成绩+AI作文批改.md | （已转换） |
 | 5 | 【已上线】按学科调用模型分析&更新题目标签展示.md | （已转换） |
 | 6 | 【已上线】阶段报告3.0.md | （已转换） |
@@ -358,6 +358,17 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `Popup.css`：关闭态 positioner `pointer-events: none`。
 - `SidebarAgentPanel`：头部 `items-center`。
 - `Sidebar.tsx`：会话行高 40px；展开更多去掉 hover 灰底。
+
+---
+
+## 2026-06-04 顶栏右侧栏展开按钮按已打开会话显示
+
+### 改动说明
+
+- `is-opened-chat-session.ts`：抽取 `isOpenedChatSession`，与 Chat 页 `currentSessionLooksHistorical` 共用。
+- `MainLayout.tsx`：顶栏 `right-sidebar-toggle` 仅在对话页且已打开历史会话、右侧栏收起、未开预览时显示；离开会话/非对话页自动收起右侧栏并清空 `agentDetailId`；`rightPanelVisible` 同步限制为已打开会话或预览。
+- `Chat/index.tsx`：复用 `isOpenedChatSession`。
+- 单测：`is-opened-chat-session.test.ts`、`main-layout.test.tsx` 新增显隐与收起用例。
 
 ---
 
