@@ -361,6 +361,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 修复智能体市场卡片「更多」菜单无法展开
+
+### 改动说明
+
+- `AgentMarket` 个人/企业卡片：`Popup` 改 `destroyOnClose`；更多按钮 `pointerDown` 仅 `stopPropagation`（去掉 `preventDefault`）。
+- 操作区 `Space` 增加 `onPointerDown` 阻止冒泡到卡片 `onClick`。
+- 同步 `SkillCard`、`SidebarAgentMoreMenu` 的相同写法。
+
+---
+
 ## 2026-06-04 侧栏智能体头像与市场实例同源
 
 ### 改动说明
