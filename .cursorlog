@@ -437,6 +437,13 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 修复右栏智能体详情白屏（恢复 RightSidebar 条件渲染）
+
+- 合并后右栏始终只渲染空 `yonclaw-preview-container`，未挂载 `RightSidebar`，点击顶栏展开按钮只见白块。
+- `previewPanelActive ? preview容器 : <RightSidebar />`；补充 main-layout 单测。
+
+---
+
 ## 2026-06-04 修复 MainLayout 合并遗漏 rightSidebarCollapsed
 
 - 合并 release-610 时 `MainContentChrome` 抽离后漏掉 `RightSidebarToggleIcon` 与右侧栏 store 订阅，导致运行时 `rightSidebarCollapsed is not defined`。
