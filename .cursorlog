@@ -319,6 +319,18 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-03 侧栏智能体会话区 802:84337
+
+### 改动说明
+
+- 新增 `SidebarAgentPanel`、`SidebarSessionItem`、`SidebarSessionMoreMenu`（`src/components/layout/sidebar/`）。
+- 802 图标 path：`sidebar-802-icons-data.ts`；时间格式：`format-sidebar-session-time.ts`（含「N周」）。
+- 会话置顶：`sidebar-ui` store `pinnedSessionKeys` 持久化；hover/active 显示置顶/重命名/删除。
+- `Sidebar.tsx` 接入组件，移除分组头设置按钮，保留折叠；虚拟列表支持可变行高。
+- 分步记录：`.cursor/plans/sidebar-agent-panel-802-step-log.md`
+
+---
+
 ## 2026-06-03 定时任务复杂 Cron 语义化展示
 
 ### 改动说明
