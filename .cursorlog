@@ -361,6 +361,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏智能体分组分割线
+
+### 改动说明
+
+- MasterGo 713:011909：分组间 1px `#E2E2E2` 横线，左右 `mx-[15px]`，上下 `py-2`。
+- `SidebarAgentGroupDivider.tsx` + `Sidebar.tsx` 虚拟列表新增 `agent-divider` 行（除首个智能体外，每组前插入）。
+- `sidebar-navigation` 分组用例断言 1 条分割线，并移除已废弃的「查看智能体设置」断言。
+
+---
+
 ## 2026-06-04 顶栏右侧栏展开按钮按已打开会话显示
 
 ### 改动说明
