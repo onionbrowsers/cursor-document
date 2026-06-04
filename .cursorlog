@@ -361,6 +361,17 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏智能体与会话间距对齐 MasterGo 802:84337
+
+### 改动说明
+
+- 依据 D2C：标题区底约 33px、首条会话顶约 43px，组内间距 10px（`pb-[10px]`）。
+- 新增 `src/lib/sidebar-agent-layout.ts`：分组头行高 38px（单行）/ 48px（含副标题），替代固定 52px。
+- `SidebarAgentHeaderItem`：`pt-[4px] pb-[10px]`；首条会话 `pt-0` 避免与分组头叠距。
+- 虚拟列表按 `hasAgentDescription` 动态行高。
+
+---
+
 ## 2026-06-04 修复智能体市场卡片「更多」菜单无法展开
 
 ### 改动说明
