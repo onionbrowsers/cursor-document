@@ -8,6 +8,7 @@
 
 - `src/ycdesign/components/Popup/Popup.tsx`：`open=true` 时记录 `[data-radix-popper-content-wrapper]` 的 top/left/transform；`open=false` 且仍挂载退出动画时以 `!important` 冻结 wrapper，避免 anchor 隐藏后浮层闪到视口左上角；动画结束卸载时清除冻结。
 - 修复：`clearFrozenPopperPosition` 仅在 `data-yc-popup-frozen` 时清除样式，避免打开时误删 Radix 定位导致菜单不显示。
+- 加固退出冻结：用 `getBoundingClientRect` 记录视口坐标；`setOpen(false)` 前同步捕获并 `!important` 冻结；退出动画期间 rAF 多次加固，对抗 Floating UI `autoUpdate` 把浮层拉回 (0,0)。
 
 ---
 
