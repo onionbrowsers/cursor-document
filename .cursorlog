@@ -361,6 +361,17 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏智能体头 hover 操作与置顶
+
+### 改动说明
+
+- `SidebarAgentHeaderItem` / `SidebarAgentMoreMenu`：hover 显示「更多 + 展开/收起」；菜单含置顶、智能体详情（`setAgentDetailId` + 展开右侧栏，与会话行规则一致）。
+- 置顶后右侧常显橙色图钉，点击取消置顶；`sidebar-ui` 新增 `pinnedAgentIds` / `togglePinnedAgentId`（持久化 v5）。
+- `sidebar-agent-pin-order`：智能体分组排序优先置顶项。
+- `Sidebar.tsx` 接入上述组件，会话/智能体菜单互斥关闭。
+
+---
+
 ## 2026-06-04 侧栏智能体分组分割线
 
 ### 改动说明
