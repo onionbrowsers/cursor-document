@@ -437,28 +437,6 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
-## 2026-06-04 合并 release-610 审查与 git-merge 命令更新
-
-- 审查 merge f474599e：MainLayout 冲突解决遗漏 RightSidebar/变量（工作区已修）；sidebar-workspaces mock 补 pinnedAgentIds。
-- 5 条 sidebar 单测在 merge 前已因 802 分组头无数量展示而失败，非本次合并新引入。
-- `.cursor/commands/git-merge.md`：冲突时强制 `git merge --abort`，禁止 AI 自动解冲突。
-
----
-
-## 2026-06-04 修复右栏智能体详情白屏（恢复 RightSidebar 条件渲染）
-
-- 合并后右栏始终只渲染空 `yonclaw-preview-container`，未挂载 `RightSidebar`，点击顶栏展开按钮只见白块。
-- `previewPanelActive ? preview容器 : <RightSidebar />`；补充 main-layout 单测。
-
----
-
-## 2026-06-04 修复 MainLayout 合并遗漏 rightSidebarCollapsed
-
-- 合并 release-610 时 `MainContentChrome` 抽离后漏掉 `RightSidebarToggleIcon` 与右侧栏 store 订阅，导致运行时 `rightSidebarCollapsed is not defined`。
-- 在 `MainContentChrome` 与 `MainLayout` 中恢复 `rightSidebarCollapsed` / `toggleRightSidebar` / `setAgentDetailId` 等声明。
-
----
-
 ## 2026-06-04 合并 release-610 到 feature-610-changeSidebarUI（f474599e）
 
 - `git merge release-610 --no-ff`：解决 4 处冲突（MainLayout 右侧栏开关、Sidebar 分组头/置顶、AgentMarket 头像组件、sidebar-navigation 测试）。
