@@ -52,6 +52,16 @@
 
 **状态**：`done`
 
+## Step 6 — 置顶逻辑与图标（713:012341）
+
+- 点亮图标 `SIDEBAR_SESSION_PIN_ACTIVE_ICON`（#F59E0C）
+- `sortSidebarSessionsWithPins` + `normalizePinnedSessionKeys`（`src/lib/sidebar-session-pin-order.ts`）
+- 最近置顶排最前；取消置顶落在非置顶区第一项（`lastUnpinnedSessionKey`）
+- 已置顶行：常驻点亮图钉，无 hover 操作条；点击图钉取消置顶
+- 持久化 `pinnedSessionKeys`（`yonclaw-sidebar-ui`）
+
+**状态**：`done`
+
 ## 排查表
 
 | 现象 | 查哪步 |
