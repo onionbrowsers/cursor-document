@@ -331,6 +331,18 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-03 侧栏会话行交互修复（Step 5）
+
+### 改动说明
+
+- `SidebarSessionItem`：整行 hover 灰底；右侧固定 76px 槽切换时间/操作，去掉绝对定位重叠；操作 icon 无单独 hover 底。
+- `SidebarSessionMoreMenu`：移除 `visible` 门控（修复 hover 不显示三点）；`destroyOnClose`。
+- `Popup.css`：关闭态 positioner `pointer-events: none`。
+- `SidebarAgentPanel`：头部 `items-center`。
+- `Sidebar.tsx`：会话行高 40px；展开更多去掉 hover 灰底。
+
+---
+
 ## 2026-06-03 定时任务复杂 Cron 语义化展示
 
 ### 改动说明

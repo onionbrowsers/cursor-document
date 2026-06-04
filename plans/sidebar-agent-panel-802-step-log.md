@@ -25,22 +25,32 @@
 | `SidebarSessionItem` | 单条会话（左图标/中标题/右时间；hover/active 显操作） |
 | `SidebarSessionMoreMenu` | 三点下拉仅删除（复用 Popup+YcButton） |
 
-**状态**：`in_progress`
+**状态**：`done`
 
 ## Step 3 — 置顶持久化
 
 - `useSidebarUiStore.pinnedSessionKeys` + `togglePinnedSessionKey`
 - 组内排序：置顶优先，再按活动时间
 
-**状态**：`pending`
+**状态**：`done`
 
 ## Step 4 — 接入 Sidebar 虚拟列表
 
 - 替换 `agent-header` / `session` / `show-more` 渲染
 - 移除分组头 Settings
-- 行高对齐 32px 节奏
+- 会话行 32px；智能体头 52px；可变高度虚拟滚动
 
-**状态**：`pending`
+**状态**：`done`
+
+## Step 5 — 交互与布局修复（用户反馈）
+
+- 智能体头 `items-center` 纵向居中
+- 会话行：整行 `group-hover` 灰底；flex 右槽 `76px` 切换时间/操作，避免重叠
+- 移除操作 icon 单独 hover 背景
+- 三点菜单：去掉 `visible` 门控；`destroyOnClose` + 关闭态 positioner `pointer-events: none`
+- 行高 40px（`py-[4px]`）；展开更多去掉 hover 灰底
+
+**状态**：`done`
 
 ## 排查表
 
@@ -50,3 +60,4 @@
 | hover 无置顶/铅笔 | Step 2 |
 | 仍有设置齿轮 | Step 4 |
 | 置顶刷新后丢失 | Step 3 |
+| 滚动错位 | Step 4 可变行高 offsets |
