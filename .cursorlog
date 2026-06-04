@@ -331,6 +331,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏底部头像与设置图标（713:011911 / 713:012347）
+
+- `SidebarFooterAvatar`：24×24、圆角 4px、描边 `border-white/80`；仍用 `Avatar` + 用户头像/文字
+- `SidebarFooterSettingsIcon`：MasterGo 齿轮 SVG 替换原 `settingsGlyphIcon`
+- 单测 `sidebar-navigation` footer 用例与 mock 补齐 `pinnedSessionKeys`
+
+---
+
 ## 2026-06-03 侧栏会话行交互修复（Step 5）
 
 ### 改动说明
