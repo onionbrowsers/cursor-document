@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-04 Popup 关闭动画期间冻结 Popper 定位（方案 A）
+
+### 改动说明
+
+- `src/ycdesign/components/Popup/Popup.tsx`：`open=true` 时记录 `[data-radix-popper-content-wrapper]` 的 top/left/transform；`open=false` 且仍挂载退出动画时以 `!important` 冻结 wrapper，避免 anchor 隐藏后浮层闪到视口左上角；动画结束卸载时清除冻结。
+
+---
+
 ## 2026-06-02 修复 Cron 会话标题与运行元信息展示
 
 ### 修改文件
