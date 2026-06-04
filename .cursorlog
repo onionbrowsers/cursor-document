@@ -437,6 +437,17 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏 UI 重构与智能体头像统一（git commit f4182186）
+
+### 改动说明
+
+- 分支 `feature-610-changeSidebarUI`：提交并推送 `feat(sidebar): 重构侧栏智能体分组 UI 并统一实例头像展示`（51 files）。
+- `Sidebar.tsx` 拆分为 `src/components/layout/sidebar/*`；802/796 导航与页脚图标；`sidebar-ui` 置顶状态。
+- `AgentInstanceAvatar` + `agent-instance-display.ts` 统一侧栏/市场/详情展示名与头像。
+- `Popup` 增强上下文菜单；约定文档 `docs/conventions/agent-instance-avatar-unification.md`；配套单测。
+
+---
+
 ## 2026-06-03 定时任务复杂 Cron 语义化展示
 
 ### 改动说明
