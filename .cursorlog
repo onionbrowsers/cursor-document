@@ -361,6 +361,18 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-04 侧栏智能体头像与市场实例同源
+
+### 改动说明
+
+- 新增 `src/lib/agent-instance-display.ts`：按 `agentId` 解析 `displayName` / `avatar`（`useAgentMarketStore.agentInstances` 为唯一数据源）。
+- 新增 `src/components/agent/AgentInstanceAvatar.tsx`：市场卡片、侧栏分组头、详情面板共用头像 UI（`sidebar` / `card` / `detail` / `panel`）。
+- `Sidebar.tsx`：分组标题与头像改读市场实例；`main` 无自定义 avatar 仍用 `smartPal.svg`；挂载时静默 `fetchAgentInstances`。
+- `AgentMarket/index.tsx`、`AgentDetail.tsx`：迁入共享 lib/组件，去除页内重复实现。
+- 文档：`docs/conventions/agent-instance-avatar-unification.md`；单测 `agent-instance-display.test.ts`、侧栏头像用例。
+
+---
+
 ## 2026-06-04 智能体头交互与 Popup 关闭定位修复
 
 ### 改动说明
