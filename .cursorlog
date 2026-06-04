@@ -315,6 +315,7 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `Sidebar.tsx`：`NavItem` 脱离 `GlassNavItem`，扁平行 32px、13/18；hover/active `#E2E2E2`；新建任务去磨砂与 ⌘K 徽标；智能体市场改用 `CHANNEL_NAV_ICON`。
 - 新增 `newTaskNavIcon.tsx`、`agentMarketNavIcon.tsx`；`mastergo-nav-icons-data.ts` 增加 `NEW_TASK_NAV_ICON`。
 - 分步记录：`.cursor/plans/sidebar-nav-610-step-log.md`；单测 `sidebar-navigation.test.tsx` 导航/搜索断言同步。
+- 补正 Step G：定时/技能/市场改用 796 DSL path（`732:81560/61`、`732:81571`、`732:81568`），不再用 289 闹钟/四宫格/CHANNEL 图标。
 
 ---
 
