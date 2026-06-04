@@ -62,6 +62,13 @@
 
 **状态**：`done`
 
+## Step 7 — 侧栏底部头像 / 设置图标（713:011911 / 713:012347）
+
+- `SidebarFooterAvatar`：24×24、`rounded-[4px]`、`border-white/80`；内容仍走 `Avatar` + `UserInfoPopover`
+- `SidebarFooterSettingsIcon`：替换原 `settingsGlyphIcon` 三横线图标
+
+**状态**：`done`
+
 ## 排查表
 
 | 现象 | 查哪步 |
