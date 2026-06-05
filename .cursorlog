@@ -556,3 +556,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 测试更新：`session-display-title.test.ts`、`sidebar-workspaces.test.tsx`、`sidebar-session-left-icon.test.tsx`。
 
 ---
+
+## 2026-06-05 Sidebar 搜索弹窗键盘交互
+
+### 改动说明
+
+- `SidebarSearchDialog.tsx` 新增会话键盘导航：按 `↑/↓` 切换会话高亮，按 `Enter` 选中当前高亮会话，行为与鼠标点击一致。
+- 会话高亮逻辑使用“当前选中 key + 结果列表兜底首项”策略，保证筛选结果变化后仍有稳定选中项。
+- 搜索弹窗底部新增灰色提示行：`↑↓ 移动光标  ↵ 选择条目`，对齐设计稿交互说明。
+- 回归验证：`tests/unit/sidebar-workspaces.test.tsx` 通过（31/31）。
+
+---
