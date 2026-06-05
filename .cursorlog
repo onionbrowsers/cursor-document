@@ -590,6 +590,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 侧栏图标列与顶栏菜单纵向对齐
+
+### 改动说明
+
+- 展开态将顶栏菜单 + 任务列表包进同一 `SIDEBAR_TASK_LIST_GUTTER_CLASS` 容器，去掉列表区重复 `px-[3px]`。
+- 抽出 `SIDEBAR_ROW_SURFACE_BASE_CLASS`，顶栏 NavItem / 智能体头 / 会话行 / 展开更多共用同一行壳（`w-full` + `px-[10px]` + `border-transparent`）。
+- 图标槽改为 `justify-start` 左对齐，顶栏菜单也改用 `SIDEBAR_ROW_ICON_SLOT_CLASS`，避免 14px/12px/24px 图标因居中产生阶梯偏移。
+
+---
+
 ## 2026-06-05 侧栏智能体/会话 hover 宽度对齐
 
 ### 改动说明
