@@ -567,3 +567,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 回归验证：`tests/unit/sidebar-workspaces.test.tsx` 通过（31/31）。
 
 ---
+
+## 2026-06-05 恢复侧栏通道图标与重构 UI
+
+### 改动说明
+
+- 从 `cc29e82f` 恢复 `Sidebar.tsx`：重新接入 `SidebarSessionItem`、`SidebarAgentHeaderItem`、`resolveSidebarSessionLeftIcon` 等通道/icon 逻辑。
+- 同步 `release-610` 主题 token：`Sidebar.tsx`、`SidebarAgentHeaderItem.tsx`、`SidebarSessionRowBase.tsx` 中暗黑模式硬编码色替换为 `--yonclaw-*` 变量。
+- 根因：`35ced1a8`（yumiaob 合 release-610-ui）覆盖侧栏改造，`a67a886c` 合回 feature 时再次带入旧版。
+- 测试：`sidebar-workspaces`、`sidebar-session-left-icon` 通过（36/36）。
+
+---
