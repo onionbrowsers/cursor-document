@@ -497,3 +497,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 文档：新增 `docs/conventions/merge-release-610-conflict-audit.md` 记录冲突解决遗漏清单。
 
 ---
+
+## 2026-06-05 知识库侧栏菜单与子浏览器
+
+### 改动说明
+
+- 新增 `src/pages/KnowledgeBase/index.tsx`：独立页面，右侧主内容区嵌入 Electron `<webview>`，默认打开 `https://www.baidu.com`（`KNOWLEDGE_BASE_DEFAULT_URL` 常量便于后续替换）。
+- `Sidebar.tsx`：在技能中心与智能体市场之间新增「知识库」导航项（`BookOpen` 图标，路由 `/knowledge-base`）。
+- `App.tsx`：注册 `/knowledge-base` 路由。
+- i18n：`sidebar.knowledgeBase` 四语言文案（zh / en / zh-TW / ja）。
+
+---
