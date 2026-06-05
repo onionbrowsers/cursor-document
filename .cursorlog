@@ -589,3 +589,20 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 测试：`main-layout.test.tsx`（14/14）、`sidebar-workspaces`、`sidebar-session-left-icon` 通过（50/50）。
 
 ---
+
+## 2026-06-05 侧栏 UI 三项修复
+
+### 改动说明
+
+1. **菜单图标裁切**：顶栏 NavItem 图标槽与四个导航 SVG 增加 `overflow-visible`（`SIDEBAR_NAV_ICON_SIZE_CLASS`），避免贴 viewBox 边缘的描边在右下被裁切。
+2. **智能体与会话对齐**：新增 `SIDEBAR_ROW_ICON_SLOT_CLASS`（24×24 图标槽），智能体头、会话行、展开更多共用，使文案左缘对齐。
+3. **收起隐藏分割线**：仅当前一智能体分组为展开态时才渲染组间 `agent-divider`；收起后不再显示其下方分割线。
+
+### 涉及文件
+
+- `src/lib/sidebar-agent-layout.ts`
+- `src/assets/sidebar/mastergo-nav-icons-data.ts`、四个 nav icon 组件
+- `Sidebar.tsx`、`SidebarSessionRowBase.tsx`、`SidebarAgentHeaderItem.tsx`、`SidebarAgentPanel.tsx`
+- `tests/unit/sidebar-navigation.test.tsx`（新增收起分割线用例）
+
+---
