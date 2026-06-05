@@ -590,6 +590,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 侧栏 SidebarRowSurface 统一行壳
+
+### 改动说明
+
+- 新增 `SidebarRowSurface`：顶栏菜单 / 智能体头 / 会话行 / 展开更多共用同一 grid 行壳（`grid-cols-[24px_minmax(0,1fr)_auto]` + `px-[10px]`）。
+- 展开态搜索 + 菜单 + 任务列表包进唯一 `SIDEBAR_BODY_GUTTER_CLASS`（`px-[3px]`），消除多层 gutter 叠加。
+- 新增 `tests/unit/sidebar-row-surface-alignment.test.ts` 锁定行壳与 gutter 约定。
+
+---
+
 ## 2026-06-05 侧栏图标列与顶栏菜单纵向对齐
 
 ### 改动说明
