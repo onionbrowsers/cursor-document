@@ -521,3 +521,15 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - i18n：`sidebar.knowledgeBase` 四语言文案（zh / en / zh-TW / ja）。
 
 ---
+
+## 2026-06-05 侧栏通道会话图标
+
+### 改动说明
+
+- MasterGo `744:81782` 导出微信/友空间侧栏图标：`sidebar-wechat.svg`、`sidebar-zhiyou.svg`。
+- 新增 `channel-type-normalize.ts`、`sidebar-session-channel.ts`、`ChannelTypeIcon.tsx`、`sidebar-session-left-icon.tsx`：注册表驱动通道图标，不写死 channelType 分支。
+- 抽取 `map-indexed-sidebar-session.ts`，`Sidebar` 与 `SidebarSearchDialog` 共用索引会话映射（含 `channelType`/`sourceKind`）。
+- `SidebarSessionItem` 通过 `leftIcon` 展示通道图标；运行中仍显示 spinner。
+- 测试：`channel-type-normalize`、`sidebar-session-channel`、`sidebar-session-left-icon`。
+
+---
