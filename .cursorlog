@@ -545,3 +545,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 测试：`channel-type-normalize`、`sidebar-session-channel`、`sidebar-session-left-icon`。
 
 ---
+
+## 2026-06-05 定时任务标题与会话图标
+
+### 改动说明
+
+- `session-display-title.ts`：Cron 会话标题去掉 `【定时】` 前缀，仅保留任务标题本体（保留原有清洗与截断逻辑）。
+- 接入 MasterGo `mastergo://getd2c/189284485329449-747-016031` 图标，新建 `src/assets/sidebar/cronSessionIcon.tsx`。
+- `sidebar-session-left-icon.tsx`：左侧图标优先级改为 `spinner > cron > channel > 默认`，侧栏列表与搜索弹窗统一生效。
+- 测试更新：`session-display-title.test.ts`、`sidebar-workspaces.test.tsx`、`sidebar-session-left-icon.test.tsx`。
+
+---
