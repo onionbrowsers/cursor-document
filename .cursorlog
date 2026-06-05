@@ -7,9 +7,10 @@
 ### 改动说明
 
 - `session-display-title.ts`：通道会话标题不再追加 `【微信】` / `【友空间】` 前缀，并兼容去除历史已带前缀标题。
-- `SidebarAgentMoreMenu.tsx`：移除「智能体详情」菜单项，仅保留「置顶 / 取消置顶」。
-- `SidebarAgentHeaderItem.tsx`、`Sidebar.tsx`：删除 `onOpenAgentDetails` 链路，隐藏对应弹窗入口。
-- 验证：`tests/unit/sidebar-session-left-icon.test.tsx`、`tests/unit/sidebar-workspaces.test.tsx` 通过。
+- `SidebarAgentMoreMenu.tsx`：默认隐藏「智能体详情」菜单按钮，但保留 `onOpenAgentDetails` 链路与可恢复开关。
+- `SidebarSessionRowBase.tsx`：抽取侧栏/搜索弹窗共用会话行基础结构（左 icon、中标题、右时间）。
+- `SidebarSessionItem.tsx`、`SidebarSearchDialog.tsx`：复用基础行组件，搜索弹窗不接入操作区。
+- 验证：`session-display-title`、`sidebar-session-left-icon`、`sidebar-workspaces` 单测通过。
 
 ---
 
