@@ -466,6 +466,21 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 解决 Sidebar 搜索框 merge 冲突并完成 release-610 合并
+
+### 提交
+
+- commit：`78400a8a`（merge commit）
+- 冲突文件：`src/components/layout/Sidebar.tsx`（搜索框 hybrid 方案）
+- 测试：`sidebar-navigation`、`sidebar-workspaces`、`main-layout` 共 71 项通过
+
+### 改动说明
+
+- 搜索框：保留 `sidebarSearchInputRef`、overlay 占位 `(⌘/Ctrl+F)`；吸收 `--yonclaw-sidebar-search-surface`、`focus-within` 描边、清除按钮。
+- 测试：更新暗色样式/token 断言、改用 `searchbox` 角色定位；802 分组头不再展示数量徽章；pending 会话与 YCDesign Avatar 断言对齐实现。
+
+---
+
 ## 2026-06-05 补回 merge release-610 遗漏的 RightSidebar 右栏逻辑
 
 ### 提交
