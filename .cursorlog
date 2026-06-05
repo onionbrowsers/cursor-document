@@ -578,3 +578,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - 测试：`sidebar-workspaces`、`sidebar-session-left-icon` 通过（36/36）。
 
 ---
+
+## 2026-06-05 恢复右侧智能体详情入口
+
+### 改动说明
+
+- 从 `cc29e82f` 恢复 `MainLayout.tsx`：`RightSidebarToggleIcon`、`right-sidebar-toggle` 按钮、`RightSidebar` 面板渲染、`isOpenedChatSession` 条件展示逻辑。
+- 合并 `release-610` 主题 token（`--yonclaw-*` 变量、按路由区分主内容区背景）。
+- 会话中右上角图标：仅在 `isChatRoute && openedChatSession && rightSidebarCollapsed` 时显示，点击展开智能体详情侧栏。
+- 测试：`main-layout.test.tsx`（14/14）、`sidebar-workspaces`、`sidebar-session-left-icon` 通过（50/50）。
+
+---
