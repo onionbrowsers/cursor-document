@@ -590,6 +590,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 侧栏分割线宽度统一
+
+### 改动说明
+
+- 抽出 `SIDEBAR_SECTION_DIVIDER_LINE_CLASS`（`mx-[15px] border-t`），菜单分割线与智能体分组分割线共用同一宽度与颜色。
+
+---
+
 ## 2026-06-05 侧栏 SidebarRowSurface 统一行壳
 
 ### 改动说明
