@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-05 侧栏会话标题与智能体更多菜单收口
+
+### 改动说明
+
+- `session-display-title.ts`：通道会话标题不再追加 `【微信】` / `【友空间】` 前缀，并兼容去除历史已带前缀标题。
+- `SidebarAgentMoreMenu.tsx`：移除「智能体详情」菜单项，仅保留「置顶 / 取消置顶」。
+- `SidebarAgentHeaderItem.tsx`、`Sidebar.tsx`：删除 `onOpenAgentDetails` 链路，隐藏对应弹窗入口。
+- 验证：`tests/unit/sidebar-session-left-icon.test.tsx`、`tests/unit/sidebar-workspaces.test.tsx` 通过。
+
+---
+
 ## 2026-06-04 Popup 关闭动画期间冻结 Popper 定位（方案 A）
 
 ### 改动说明
