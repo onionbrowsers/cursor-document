@@ -590,6 +590,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 侧栏智能体/会话 hover 宽度对齐
+
+### 改动说明
+
+- 根因：任务列表容器已有 `px-[3px]`，智能体头 `SidebarAgentHeaderItem` 外层又叠了一层 `px-[3px]`，导致 hover 灰底比会话行窄 6px。
+- 移除智能体头外层重复 gutter；抽出 `SIDEBAR_TASK_LIST_GUTTER_CLASS` / `SIDEBAR_ROW_HOVER_SURFACE_PADDING_CLASS` 统一列表留白与 hover 块内边距。
+- 「展开更多」行改为与会话行相同结构（外层仅垂直间距，内层按钮承担 `px-[10px]`）。
+
+---
+
 ## 2026-06-05 侧栏 UI 三项修复
 
 ### 改动说明
