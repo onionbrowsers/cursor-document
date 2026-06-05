@@ -498,6 +498,19 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-05 知识库 webview 白屏修复
+
+### 原因
+
+- `electron/main/index.ts` 的 `attachPreviewWebviewGuards` 在 `will-attach-webview` 中拦截未注册 partition 的 webview；仅 `about:blank`、Gateway Control UI 或带 `yonclaw-preview-*` partition 的预览 URL 可挂载。
+- 知识库页最初裸挂 `<webview src="https://www.baidu.com">`，主进程日志为 `Blocked unregistered webview`，guest 未创建导致白屏。
+
+### 修复
+
+- `KnowledgeBase/index.tsx`：使用 `buildPreviewPartition('external', ...)` + `data-preview-mode`，与聊天 URL 预览同一安全链路。
+
+---
+
 ## 2026-06-05 知识库侧栏菜单与子浏览器
 
 ### 改动说明
