@@ -465,3 +465,20 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - i18n：`hourRangeOnWeekdays`、`minuteStepHourRangeOnWeekdays`（四语言）；仍保留 `cronExpression` 作无法解析时的兜底。
 
 ---
+
+## 2026-06-05 补回 merge release-610 遗漏的 RightSidebar 右栏逻辑
+
+### 提交
+
+- commit：`48d301a9`
+- message：`fix(layout): 补回 merge release-610 遗漏的 RightSidebar 右栏逻辑`
+- 分支：`feature-610-changeSidebarUI` → `origin/feature-610-changeSidebarUI`
+
+### 改动说明
+
+- `MainLayout.tsx`：补 `RightSidebar` import、`RightSidebarToggleIcon`、store 订阅；`previewPanelActive` 时渲染预览容器，否则渲染 `RightSidebar`。
+- `AgentMarket/index.tsx`：删除合并遗留的多余 `AgentAvatar` import。
+- 测试：`main-layout.test.tsx` 覆盖无预览时显示 RightSidebar；`sidebar-workspaces.test.tsx` mock 补全 `rightSidebarCollapsed`、`pinnedAgentIds` 等。
+- 文档：新增 `docs/conventions/merge-release-610-conflict-audit.md` 记录冲突解决遗漏清单。
+
+---
