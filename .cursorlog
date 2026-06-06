@@ -652,3 +652,11 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `tests/unit/sidebar-navigation.test.tsx`（新增收起分割线用例）
 
 ---
+
+## 2026-06-06 隐藏侧栏智能体详情菜单项
+
+### 改动说明
+
+- `SidebarAgentMoreMenu.tsx`：新增 `SHOW_AGENT_DETAILS_MENU_ACTION = false`，条件隐藏「智能体详情」按钮；`handleOpenAgentDetails`、`onOpenAgentDetails` 等逻辑与 props 保留，恢复入口时改常量即可。
+
+---
