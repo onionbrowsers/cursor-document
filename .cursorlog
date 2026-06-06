@@ -523,6 +523,18 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-06 侧边栏智能体头跳转新建会话并预选智能体
+
+### 改动说明
+
+- 点击侧边栏智能体头 → 路由 state 透传 `preferredAgentId` → Chat 页 `newSession()` → 输入框下拉预选对应智能体；列表无该 ID 时兜底 `main`（YonClaw）。
+- 新增 `src/pages/Chat/composer-agent-selection.ts`：`resolveComposerAgentId` 统一兜底逻辑。
+- `SidebarAgentHeaderItem`：整行可点击（`cursor: pointer`），右侧菜单/置顶/展开仍 `stopPropagation`。
+- `ChatInput`：新增 `preferredEmptySessionAgentId` / `preferredEmptySessionAgentNonce` props，异步 agent 列表加载后仍会重算选中项。
+- 测试：`composer-agent-selection.test.ts`、sidebar-navigation、chat-input 各补用例。
+
+---
+
 ## 2026-06-05 知识库侧栏菜单与子浏览器
 
 ### 改动说明
@@ -650,13 +662,5 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `src/assets/sidebar/mastergo-nav-icons-data.ts`、四个 nav icon 组件
 - `Sidebar.tsx`、`SidebarSessionRowBase.tsx`、`SidebarAgentHeaderItem.tsx`、`SidebarAgentPanel.tsx`
 - `tests/unit/sidebar-navigation.test.tsx`（新增收起分割线用例）
-
----
-
-## 2026-06-06 隐藏侧栏智能体详情菜单项
-
-### 改动说明
-
-- `SidebarAgentMoreMenu.tsx`：新增 `SHOW_AGENT_DETAILS_MENU_ACTION = false`，条件隐藏「智能体详情」按钮；`handleOpenAgentDetails`、`onOpenAgentDetails` 等逻辑与 props 保留，恢复入口时改常量即可。
 
 ---
