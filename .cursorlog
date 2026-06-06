@@ -535,6 +535,16 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 
 ---
 
+## 2026-06-06 取消置顶后会话按时间排序
+
+### 改动说明
+
+- 移除 `lastUnpinnedSessionKey` 临时排序标记及 `clearLastUnpinnedSessionKey` action。
+- `sortSidebarSessionsWithPins` 非置顶区统一按活动时间降序，取消置顶后不再固定排在非置顶区第一项。
+- 涉及：`sidebar-session-pin-order.ts`、`sidebar-ui.ts`、`Sidebar.tsx` 及 4 个测试 mock 清理。
+
+---
+
 ## 2026-06-05 知识库侧栏菜单与子浏览器
 
 ### 改动说明
