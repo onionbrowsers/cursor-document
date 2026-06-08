@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-06-08 知识库 webview 加载事件监听修复
+
+- `src/pages/KnowledgeBase/index.tsx`：移除无效的 React `onLoad` 属性，改用 `ref` + `addEventListener` 监听 Electron webview 专有事件（`dom-ready`、`did-start-loading`、`did-stop-loading`、`did-fail-load`）。
+
+---
+
 ## 2026-06-05 侧栏会话标题与智能体更多菜单收口
 
 ### 改动说明
