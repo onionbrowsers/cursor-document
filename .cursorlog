@@ -680,3 +680,14 @@ Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生
 - `tests/unit/sidebar-navigation.test.tsx`（新增收起分割线用例）
 
 ---
+
+## 2026-06-09 修复 Profile 冷启动 Gateway stopped 导致加载页卡死
+
+**问题**：`blockReason=gateway_startup_blocking` 且 `gatewayState=stopped`，加载页等待 Gateway running 但从未触发 start。
+
+**修复**：
+- `App.tsx`：Profile 恢复加载阶段若 Gateway 为 `stopped`，主动调用 `useGatewayStore.start()`
+- `startup-loading.ts`：新增 `resolveStartupLoadingGateSnapshot` 诊断快照
+- 测试：补充 gateway start 补救用例，mock CapabilityCenter/ComingSoon
+
+---
