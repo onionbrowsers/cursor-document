@@ -6,3 +6,12 @@ docs/
 
 # 本地日志
 *.log
+
+# macOS
+.DS_Store
+
+# 会话审查运行时产物（仅保留 reviews/README.md）
+reviews/.session-files.tmp
+reviews/.session-meta.json
+reviews/last-session-manifest.md
+reviews/archive/

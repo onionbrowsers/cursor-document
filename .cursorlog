@@ -1,693 +1,140 @@
-# Cursor 操作日志
 
----
+## 2026-07-15 修复 webview_call_page_action 成功路径 ReferenceError
 
-## 2026-06-08 知识库 webview 加载事件监听修复
-
-- `src/pages/KnowledgeBase/index.tsx`：移除无效的 React `onLoad` 属性，改用 `ref` + `addEventListener` 监听 Electron webview 专有事件（`dom-ready`、`did-start-loading`、`did-stop-loading`、`did-fail-load`）。
-
----
-
-## 2026-06-05 侧栏会话标题与智能体更多菜单收口
-
-### 改动说明
-
-- `session-display-title.ts`：通道会话标题不再追加 `【微信】` / `【友空间】` 前缀，并兼容去除历史已带前缀标题。
-- `SidebarAgentMoreMenu.tsx`：默认隐藏「智能体详情」菜单按钮，但保留 `onOpenAgentDetails` 链路与可恢复开关。
-- `SidebarSessionRowBase.tsx`：抽取侧栏/搜索弹窗共用会话行基础结构（左 icon、中标题、右时间）。
-- `SidebarSessionItem.tsx`、`SidebarSearchDialog.tsx`：复用基础行组件，搜索弹窗不接入操作区。
-- 验证：`session-display-title`、`sidebar-session-left-icon`、`sidebar-workspaces` 单测通过。
-
----
-
-## 2026-06-04 Popup 关闭动画期间冻结 Popper 定位（方案 A）
-
-### 改动说明
-
-- `src/ycdesign/components/Popup/Popup.tsx`：`open=true` 时记录 `[data-radix-popper-content-wrapper]` 的 top/left/transform；`open=false` 且仍挂载退出动画时以 `!important` 冻结 wrapper，避免 anchor 隐藏后浮层闪到视口左上角；动画结束卸载时清除冻结。
-- 修复：`clearFrozenPopperPosition` 仅在 `data-yc-popup-frozen` 时清除样式，避免打开时误删 Radix 定位导致菜单不显示。
-- 加固退出冻结：用 `getBoundingClientRect` 记录视口坐标；`setOpen(false)` 前同步捕获并 `!important` 冻结；退出动画期间 rAF 多次加固，对抗 Floating UI `autoUpdate` 把浮层拉回 (0,0)。
-
----
-
-## 2026-06-02 修复 Cron 会话标题与运行元信息展示
-
-### 修改文件
-
-- `src/lib/session-display-title.ts`
-- `src/stores/chat.ts`
-- `src/stores/chat/cron-session-utils.ts`
-- `electron/utils/cron-session-projection.ts`
-- `tests/unit/session-display-title.test.ts`
-- `tests/unit/cron-history-display.test.ts`
-- `tests/unit/session-index-scanner.test.ts`
-- `tests/src/stores/chat-cron-history.test.ts`
-
-### 修改说明
-
-修复定时任务执行历史回放时，会话标题被 `[cron:<jobId> ...]` 运行包装污染或被过滤为空的问题；同时移除 cron fallback 投影中自动拼接到 assistant 正文末尾的“耗时/模型”运行元信息。
-
-### 主要改动
-
-- Cron 标题解析优先从 `[cron:<jobId> <任务名>]` 中提取任务名，避免使用后续 prompt 作为标题。
-- Chat 历史加载时从“定时任务：xxx”元信息回填 session label，避免顶部标题为空。
-- Cron run 投影不再把 `durationMs/provider/model` 拼接进 assistant 可见文本。
-- 对旧索引/旧历史中的 `cron-run-*` assistant 消息做窄规则清洗，移除末尾完全由“耗时/模型”组成的运行元信息段。
-- 更新相关单测覆盖标题解析、cron 历史展示和 session-index 期望。
-
-### 追加修正
-
-- 支持清洗只有单换行分隔的尾部运行元信息，例如 `正文\n耗时：132s | 模型：provider/model`。
-- 在 `execution.finished.summary` 已经包含运行元信息时，也会在 main 侧 cron projection 源头剥离，避免重新进入 session-index 或 fallback 历史。
-
----
-
-## [2026-03-03] Cursor Rules 规范体系整理
-
-### 操作概述
-
-将原 `.cursorrules` 文件中的所有规范内容，按照职责拆分为 `.cursor/rules/` 目录下的独立 `.mdc` 文件，并更新 `.cursorrules` 为精简的规则索引入口。新增两类规范（Git 提交规范、错误处理规范）作为体系补充。
-
----
-
-### 一、新增/更新的规则文件
-
-| 文件 | alwaysApply | glob 范围 | 内容描述 |
-|------|-------------|-----------|----------|
-| `ai-behavior.mdc` | `true` | 全局 | AI 助手身份、工作流程、项目管理、代码质量要求 |
-| `chinese-language.mdc` | `true` | 全局 | 强制所有思考与回答内容使用中文输出 |
-| `code-style.mdc` | `true` | 全局 | 通用编码原则、事件命名、CSS cursor 规范、异步代码规范 |
-| `typescript-conventions.mdc` | `false` | `**/*.ts`, `**/*.tsx` | 命名前缀（I/E/T）、数组类型、文件命名、类型安全、工具类型、严格模式配置 |
-| `react-conventions.mdc` | `false` | `**/*.tsx` | 组件结构目录、函数组件定义、Props 接口、Hooks 规范（useState/useEffect/useCallback/useMemo）、渲染规范、Next.js 补充规范 |
-| `comment-conventions.mdc` | `false` | `**/*.ts`, `**/*.tsx` | JSDoc 注释规范（函数/变量/组件/Interface/Type/Enum）、行内注释规范、禁止事项 |
-| `git-conventions.mdc` | `true` | 全局 | Conventional Commits 规范、分支命名规范、原子提交原则、禁止事项、Code Review 规范 |
-| `error-handling.mdc` | `false` | `**/*.ts`, `**/*.tsx` | 异步错误处理、ApiError 类、React 组件三态管理、ErrorBoundary、表单校验错误处理 |
-| `performance.mdc` | `false` | `**/*.tsx` | useMemo/useCallback/React.memo 使用规则、列表虚拟化、代码分割懒加载、图片优化、并行请求、请求缓存 |
-
----
-
-### 二、更新 .cursorrules
-
-将原有的完整规则内容精简为**规则索引入口**，包含：
-- 规则文件列表（文件名、作用范围、描述）
-- 技术栈说明
-- 快速参考指引（场景 → 对应规则文件）
-
----
-
-### 三、规则设计原则
-
-- **全局规则**（`alwaysApply: true`）：影响所有文件的行为规范，如 AI 行为、代码风格、Git 规范
-- **文件级规则**（`globs` 限定）：仅在特定文件类型激活，减少非相关文件的规则噪音
-- **职责单一**：每个文件只覆盖一类规范，便于独立维护和更新
-
----
-
-## [2026-03-03] 提分专项 PRD 飞书文档转 Markdown
-
-### 操作概述
-读取 `.cursor/docs/fe-reverse-teaching/提分专项/` 目录下所有反讲文档，提取其中的 PRD 飞书链接，通过飞书 MCP API 将 `docx` 类型文档转换为 Markdown 格式，并保存到 `.cursor/docs/product-requirement-document/提分专项/` 目录下。
-
----
-
-### 一、创建 Cursor 规则
-
-**文件**：`.cursor/rules/chinese-language.mdc`
-
-**内容**：`alwaysApply: true`，强制要求所有 AI 思考过程与回答内容使用中文输出。
-
----
-
-### 二、源文件目录
-
-`.cursor/docs/fe-reverse-teaching/提分专项/`
-
-读取该目录下所有 `.md` 文件，通过正则匹配提取 `**prd：**[标题](飞书链接)` 格式的 PRD 链接。
-
-共提取到：
-- 飞书 PRD 链接：**19 条**
-- 非飞书链接（跳过）：**1 条**
-
----
-
-### 三、成功转换的 PRD 文件（9 个）
-
-保存目录：`.cursor/docs/product-requirement-document/提分专项/`
-
-| 序号 | 文件名 | 飞书 Obj Token |
-|------|--------|---------------|
-| 1 | 收分V4.0+支持战略学科.md | （已转换） |
-| 2 | 收分V4.1.md | （已转换） |
-| 3 | 【已上线】EES内容交接+支持PDF试卷分析.md | （已转换） |222
-| 4 | 【已上线】企微收集成绩+AI作文批改.md | （已转换） |
-| 5 | 【已上线】按学科调用模型分析&更新题目标签展示.md | （已转换） |
-| 6 | 【已上线】阶段报告3.0.md | （已转换） |
-| 7 | 【开发中】增加目标院校模块+补充埋点+数据准确性测试.md | （已转换） |
-| 8 | 【已上线】试卷分析报告七期-线上报告替换+试卷分析功能优化+prompt优化.md | （已转换） |
-| 9 | 【已上线】试卷分析报告八期-接入Theta能力.md | （已转换） |
-
----
-
-### 四、跳过的 PRD（10 个）
-
-以下 PRD 在调用 `user-feishu-mcp-wiki_v2_space_getNode` 时返回 `code: 131005, msg: not found`，无法解析 `obj_token`，已按规则跳过：
-
-1. 【已上线】收分V3.0产品需求文档
-2. 【已上线】收分模型升级V3.1
-3. 【已上线】收分V3.2
-4. 【已上线】分阶段报告1.0
-5. 【已上线】阶段报告2.0
-6. 【已上线】前端反讲-提分宝V1.1
-7. 【已上线】前端反讲-提分宝V1.2
-8. 【已上线】AI作文批改
-9. （其他无法解析的节点）
-10. （其他无法解析的节点）
-
-> 跳过原因：飞书 `node_token` 无法通过 `getNode` API 解析为有效的 `obj_token`（文档可能已删除、迁移或权限不足）。
-
----
-
-### 五、使用的主要 API
-
-| API | 用途 |
-|-----|------|
-| `user-feishu-mcp-wiki_v2_space_getNode` | 将 `node_token` 解析为 `obj_token` 和 `obj_type` |
-| `user-feishu-mcp-docs_v1_content_get` | 获取飞书 `docx` 文档内容并转换为 Markdown |
-
----
-
-### 六、执行结果汇总
-
-- 总 PRD 链接数（飞书）：19
-- 成功转换：**9**
-- 跳过（getNode not found）：**10**
-- 跳过（非飞书链接）：**1**
-
----
-
-## 2026-03-05 补充反讲文档第5、6大点内容
-
-### 修改文件
-
-`.cursor/docs/fe-reverse-teaching/中价课/【前端反讲】真题考点·好题速递.md`
-
-### 修改说明
-
-基于 `feature-20260304-middleCourse` 分支的 `git diff`，对反讲文档的第5大点（设计思路和方案）与第6大点（详细设计）进行了内容补充和代码注释完善。**仅修改了这两个大块，第1-4章及第7章保持原样。**
-
-### 第5大点改动
-
-| 小节 | 改动内容 |
-|------|---------|
-| 5.1 整体流程图 | 将原文字列表替换为 Mermaid `flowchart TD` 流程图，完整展示从首页入口 → 列表页 → 解析页 → CollapsibleActionBar → 跳转/加好友的交互路径 |
-| 5.3 整体项目难点梳理与解决方案 | 填充原为空的表格，补充4条技术难点及对应解决方案（定时器管理、横竖屏响应式、跨平台路由、Mock数据防空白） |
-| 5.4 跨部门协同方案（新增） | 新增该小节，明确与后端（接口约定）、产品/后端（`recommendReason` 字段）、数据侧（Habo 事件 ID 及参数）的协作约定 |
-
-### 第6大点改动
-
-| 小节 | 改动内容 |
-|------|---------|
-| 6.1.2 好题速递列表页 | 补充代码片段：`useChangeTitle` 标题变更、`MIDDLE_RECOMMEND_ITEM_CLICK` 埋点新增 `question_id`、注释掉版本切换按钮代码 |
-| 6.1.3 题目解析页 | 将 `FloatGuideButton` 描述更正为 `CollapsibleActionBar`；补充完整代码实现（state 定义含 Mock 数据、`getCollapsibleActionBarContent` 接口调用、`pageJump` 三端路由跳转含埋点、CollapsibleActionBar JSX 渲染） |
-| 6.2 通用代码设计 | 将 `FloatGuideButton` 节替换为 `CollapsibleActionBar` 节，补充完整 TypeScript 实现（含 JSDoc 注释、`ICollapsibleActionBarProps`、`isOpen` state、`timerId` ref、`useEffect` 自动折叠逻辑、JSX 三区块注释）；新增相关类型定义（`IFunctionEntries`、`IGetCollapsibleActionBarContentInput/Output`）及 Service 层封装（`getCollapsibleActionBarContent`），所有代码均附中文 JSDoc 注释 |
-| 6.3 接口描述 | 新增 `GET /api/practice/get-collapsible-action-bar-content` 接口；已有接口描述中将 `question_id` 字段更正为 `recommendReason` 字段 |
-
-### 代码注释规范
-
-本次所有补充的代码片段均遵循项目注释规范：
-- 函数/组件使用 `/** */` JSDoc 格式，包含 `@description`、`@param`、`@return`、`@example`
-- state/ref 变量使用 `@description` + `@type` 注释
-- interface 字段使用行内 `/** */` 注释说明用途
-- 关键逻辑节点补充行内中文注释，说明非显而易见的意图
-
----
-
-## 2026-06-02 新增 Cursor 配置中心 README
-
-### 修改文件
-
-`README.md`
-
-### 修改说明
-
-新增 `.cursor` 独立仓库的说明文档，介绍配置中心定位、目录结构、Rules/Commands/Skills/Hooks 的职责边界，以及跨项目复用的推荐方案。
-
-### 主要内容
-
-- 说明 `.cursor` 仓库作为跨项目 Cursor 配置中心的用途。
-- 梳理 `rules/`、`commands/`、`skills/`、`hooks/`、`scripts/`、`disabled/` 等目录职责。
-- 推荐使用 Git Submodule 在多个项目中复用同一套 `.cursor` 配置。
-- 补充日常维护流程、禁用归档规则、安全与提交规范、常见问题。
-
----
-
-## 2026-06-02 新增个人全局 Cursor 软链接初始化 Skill
-
-### 修改文件
-
-- `/Users/mac/.cursor/skills/cursor-shared-config-link/SKILL.md`
-- `/Users/mac/.cursor/skills/cursor-shared-config-link/scripts/install-shared-cursor.sh`
-- `.cursor/README.md`
-
-### 修改说明
-
-新增用户级全局 Skill `cursor-shared-config-link`，用于在新项目中一键安装共享 Cursor 配置。该 Skill 会调用脚本，将当前项目的 `.cursor` 软链接到本机中央配置目录 `~/.cursor/shared-config`。
-
-### 主要能力
-
-- 默认从 `https://github.com/onionbrowsers/cursor-document.git` 初始化中央配置目录。
-- 当前项目不存在 `.cursor` 时，自动创建 `.cursor -> ~/.cursor/shared-config` 软链接。
-- 当前项目已有 `.cursor` 时默认不覆盖；需要替换时需显式设置 `CURSOR_LINK_REPLACE=1`。
-- 中央配置目录存在未提交改动时，跳过自动 pull，避免覆盖本地变更。
-- README 补充了个人单机软链接方案的使用说明。
-
----
-
-## 2026-06-02 加固 Cursor Hook 软链接识别逻辑
-
-### 修改文件
-
-- `hooks/after-file-edit-sync.sh`
-- `scripts/README.md`
-
-### 修改说明
-
-调整 `afterFileEdit` 自动提交脚本，使其兼容项目 `.cursor` 软链接到 `~/.cursor/shared-config` 的场景，并明确只在 `.cursor` 配置仓库内执行 `git add`、`commit`、`push`。
-
-### 主要改动
-
-- 增加 `realpath` 解析，识别软链接真实路径。
-- 优先识别 `~/.cursor/shared-config`，避免该路径中的 `/.cursor/` 被误判为项目 `.cursor`。
-- 保留项目内 `.cursor` 路径识别，兼容非软链接独立仓库。
-- 增加 Cursor 配置仓库特征校验，避免误提交业务项目仓库。
-- `.needs-capability-update` 写入 `.cursor` 配置仓库根目录。
-- 补充脚本文档，说明 hook 兼容软链接共享配置场景。
-
----
-
-## 2026-06-02 优化 Cursor 配置自动同步 Hook
-
-### 修改文件
-
-- `hooks/after-file-edit-sync.sh`
-- `scripts/git-hooks/post-commit`
-
-### 修改说明
-
-定位 `.cursor` 自动同步到 GitHub 偶发慢和超时的问题，主要风险来自文件编辑 hook 与
-Git post-commit hook 都会后台执行 `git push`，频繁编辑时容易产生多个并发推送。
-
-### 主要改动
-
-- 保留自动 `push` 行为，不改为只 commit。
-- 新增 `.git/cursor-sync.lock` 目录锁，同一时间只允许一个同步任务运行。
-- 新增 `CURSOR_SYNC_DEBOUNCE_SECONDS` 防抖窗口，默认等待 20 秒后汇总提交。
-- 新增 `CURSOR_SYNC_PUSH_TIMEOUT_SECONDS` 推送超时配置，默认 120 秒。
-- 新增 `.git/cursor-sync.log` 本地日志，使用 ASCII 文案记录触发来源、commit、push 成功/失败与超时信息，避免不同 hook 环境下日志编码异常。
-- `afterFileEdit` 与 `post-commit` 共用同一锁和日志，避免两个入口互相抢推。
-
----
-
-## 2026-06-03 智能体卸载通道转绑提示与后端转绑
-
-### 改动说明
-
-- `AgentUninstallDialog`：若智能体存在通道绑定（含 `agent.bindings` 或微信已绑定），卸载确认文案改为提示通道将自动转绑到 YonClaw；无绑定时保留原文案。
-- `deleteAgentConfig`：删除智能体时，将可转移的通道绑定（微信账号级、非 `agent:` 友空间账号）显式 `ensureChannelBindingToAgent('main', ...)`，修复 UI 显示未绑定但微信仍路由到 main 的不一致。
-- 测试：`agent-config.test.ts`、`agent-market-frontend.test.tsx` 各补 1 条用例。
-
----
-
-## 2026-06-03 定时任务「任务时间」i18n 缺失修复
-
-### 改动说明
-
-- 在 `src/i18n/locales/{zh,en,zh-TW,ja}/cron.json` 的 `schedule` 下补齐 `cronExpression`、`multiHoursDaily`、`multiMonthsDaily`、`multiMonthDaysAt`；`zh-TW` 另补 `intervalOnWeekdaysMinutes` / `intervalOnWeekdaysHours`。
-- 根因：`formatCronExpressionLabel` 对 `raw` 等分支已调用 `t('schedule.cronExpression')`，缺 key 时 i18next 回退为 key 名；未改 `cron-helpers.ts` 逻辑。
-- 新增 `tests/unit/cron-i18n-schedule-keys.test.ts` 防止 locale 再次漏配。
-
----
-
-## 2026-06-03 侧栏搜索对齐 MasterGo 713:011925
-
-### 改动说明
-
-- `Sidebar.tsx`：搜索框去掉描边/清除钮与蓝色 focus 描边；背景 `rgba(255,255,255,0.8)`；占位「搜索」与 `(⌘+F）` 左右分布、色值 `#D0D0D0`；展开侧栏时 `⌘/Ctrl+F` 聚焦搜索输入；保留左侧放大镜图标，与「搜索」文案间距 9px。
-
----
-
-## 2026-06-03 侧栏导航 796:82851 / 610 四宫格对齐
-
-### 改动说明
-
-- `Sidebar.tsx`：`NavItem` 脱离 `GlassNavItem`，扁平行 32px、13/18；hover/active `#E2E2E2`；新建任务去磨砂与 ⌘K 徽标；智能体市场改用 `CHANNEL_NAV_ICON`。
-- 新增 `newTaskNavIcon.tsx`、`agentMarketNavIcon.tsx`；`mastergo-nav-icons-data.ts` 增加 `NEW_TASK_NAV_ICON`。
-- 分步记录：`.cursor/plans/sidebar-nav-610-step-log.md`；单测 `sidebar-navigation.test.tsx` 导航/搜索断言同步。
-- 补正 Step G：定时/技能/市场改用 796 DSL path（`732:81560/61`、`732:81571`、`732:81568`），不再用 289 闹钟/四宫格/CHANNEL 图标。
-
----
-
-## 2026-06-03 侧栏智能体会话区 802:84337
-
-### 改动说明
-
-- 新增 `SidebarAgentPanel`、`SidebarSessionItem`、`SidebarSessionMoreMenu`（`src/components/layout/sidebar/`）。
-- 802 图标 path：`sidebar-802-icons-data.ts`；时间格式：`format-sidebar-session-time.ts`（含「N周」）。
-- 会话置顶：`sidebar-ui` store `pinnedSessionKeys` 持久化；hover/active 显示置顶/重命名/删除。
-- `Sidebar.tsx` 接入组件，移除分组头设置按钮，保留折叠；虚拟列表支持可变行高。
-- 分步记录：`.cursor/plans/sidebar-agent-panel-802-step-log.md`
-
----
-
-## 2026-06-04 侧栏底部头像与设置图标（713:011911 / 713:012347）
-
-- `SidebarFooterAvatar`：24×24、圆角 4px、描边 `border-white/80`；仍用 `Avatar` + 用户头像/文字
-- `SidebarFooterSettingsIcon`：MasterGo 齿轮 SVG 替换原 `settingsGlyphIcon`
-- 单测 `sidebar-navigation` footer 用例与 mock 补齐 `pinnedSessionKeys`
-
----
-
-## 2026-06-03 侧栏会话行交互修复（Step 5）
-
-### 改动说明
-
-- `SidebarSessionItem`：整行 hover 灰底；右侧固定 76px 槽切换时间/操作，去掉绝对定位重叠；操作 icon 无单独 hover 底。
-- `SidebarSessionMoreMenu`：移除 `visible` 门控（修复 hover 不显示三点）；`destroyOnClose`。
-- `Popup.css`：关闭态 positioner `pointer-events: none`。
-- `SidebarAgentPanel`：头部 `items-center`。
-- `Sidebar.tsx`：会话行高 40px；展开更多去掉 hover 灰底。
-
----
-
-## 2026-06-04 侧栏智能体与会话间距对齐 MasterGo 802:84337
-
-### 改动说明
-
-- 依据 D2C：标题区底约 33px、首条会话顶约 43px，组内间距 10px（`pb-[10px]`）。
-- 新增 `src/lib/sidebar-agent-layout.ts`：分组头行高 38px（单行）/ 48px（含副标题），替代固定 52px。
-- `SidebarAgentHeaderItem`：`pt-[4px] pb-[10px]`；首条会话 `pt-0` 避免与分组头叠距。
-- 虚拟列表按 `hasAgentDescription` 动态行高。
-
----
-
-## 2026-06-04 修复智能体市场卡片「更多」菜单无法展开
-
-### 改动说明
-
-- `AgentMarket` 个人/企业卡片：`Popup` 改 `destroyOnClose`；更多按钮 `pointerDown` 仅 `stopPropagation`（去掉 `preventDefault`）。
-- 操作区 `Space` 增加 `onPointerDown` 阻止冒泡到卡片 `onClick`。
-- 同步 `SkillCard`、`SidebarAgentMoreMenu` 的相同写法。
-
----
-
-## 2026-06-04 侧栏智能体头像与市场实例同源
-
-### 改动说明
-
-- 新增 `src/lib/agent-instance-display.ts`：按 `agentId` 解析 `displayName` / `avatar`（`useAgentMarketStore.agentInstances` 为唯一数据源）。
-- 新增 `src/components/agent/AgentInstanceAvatar.tsx`：市场卡片、侧栏分组头、详情面板共用头像 UI（`sidebar` / `card` / `detail` / `panel`）。
-- `Sidebar.tsx`：分组标题与头像改读市场实例；`main` 无自定义 avatar 仍用 `smartPal.svg`；挂载时静默 `fetchAgentInstances`。
-- `AgentMarket/index.tsx`、`AgentDetail.tsx`：迁入共享 lib/组件，去除页内重复实现。
-- 文档：`docs/conventions/agent-instance-avatar-unification.md`；单测 `agent-instance-display.test.ts`、侧栏头像用例。
-
----
-
-## 2026-06-04 智能体头交互与 Popup 关闭定位修复
-
-### 改动说明
-
-- 置顶图钉：非 hover 时显示；hover / 菜单打开时隐藏，仅保留「更多 + 展开」。
-- 展开按钮：去掉单独 hover 背景，统一由智能体行 hover 高亮。
-- `SidebarAgentMoreMenu`：菜单项通过 `setOpen(false)` 关闭并冻结坐标；智能体详情延后 `queueMicrotask` 再开右侧栏。
-- `Popup`：受控 `open` 变 false 时若尚无冻结坐标则立即捕获，覆盖会话/智能体等所有下拉。
-
----
-
-## 2026-06-04 侧栏智能体头 hover 操作与置顶
-
-### 改动说明
-
-- `SidebarAgentHeaderItem` / `SidebarAgentMoreMenu`：hover 显示「更多 + 展开/收起」；菜单含置顶、智能体详情（`setAgentDetailId` + 展开右侧栏，与会话行规则一致）。
-- 置顶后右侧常显橙色图钉，点击取消置顶；`sidebar-ui` 新增 `pinnedAgentIds` / `togglePinnedAgentId`（持久化 v5）。
-- `sidebar-agent-pin-order`：智能体分组排序优先置顶项。
-- `Sidebar.tsx` 接入上述组件，会话/智能体菜单互斥关闭。
-
----
-
-## 2026-06-04 侧栏智能体分组分割线
-
-### 改动说明
-
-- MasterGo 713:011909：分组间 1px `#E2E2E2` 横线，左右 `mx-[15px]`，上下 `py-2`。
-- `SidebarAgentGroupDivider.tsx` + `Sidebar.tsx` 虚拟列表新增 `agent-divider` 行（除首个智能体外，每组前插入）。
-- `sidebar-navigation` 分组用例断言 1 条分割线，并移除已废弃的「查看智能体设置」断言。
-
----
-
-## 2026-06-04 顶栏右侧栏展开按钮按已打开会话显示
-
-### 改动说明
-
-- `is-opened-chat-session.ts`：抽取 `isOpenedChatSession`，与 Chat 页 `currentSessionLooksHistorical` 共用。
-- `MainLayout.tsx`：顶栏 `right-sidebar-toggle` 仅在对话页且已打开历史会话、右侧栏收起、未开预览时显示；离开会话/非对话页自动收起右侧栏并清空 `agentDetailId`；`rightPanelVisible` 同步限制为已打开会话或预览。
-- `Chat/index.tsx`：复用 `isOpenedChatSession`。
-- 单测：`is-opened-chat-session.test.ts`、`main-layout.test.tsx` 新增显隐与收起用例。
-
----
-
-## 2026-06-04 合并 release-610 到 feature-610-changeSidebarUI（f474599e）
-
-- `git merge release-610 --no-ff`：解决 4 处冲突（MainLayout 右侧栏开关、Sidebar 分组头/置顶、AgentMarket 头像组件、sidebar-navigation 测试）。
-- 保留侧栏重构（SidebarAgentHeaderItem、rightPanelVisible、AgentInstanceAvatar 共享组件），并入 release 侧栏测试断言。
-- 已 push `origin/feature-610-changeSidebarUI`。
-
----
-
-## 2026-06-04 侧栏 UI 重构与智能体头像统一（git commit f4182186）
-
-### 改动说明
-
-- 分支 `feature-610-changeSidebarUI`：提交并推送 `feat(sidebar): 重构侧栏智能体分组 UI 并统一实例头像展示`（51 files）。
-- `Sidebar.tsx` 拆分为 `src/components/layout/sidebar/*`；802/796 导航与页脚图标；`sidebar-ui` 置顶状态。
-- `AgentInstanceAvatar` + `agent-instance-display.ts` 统一侧栏/市场/详情展示名与头像。
-- `Popup` 增强上下文菜单；约定文档 `docs/conventions/agent-instance-avatar-unification.md`；配套单测。
-
----
-
-## 2026-06-03 定时任务复杂 Cron 语义化展示
-
-### 改动说明
-
-- `schedule-builder`：新增 `minuteStepHourRangeWeekdays`（如 `*/10 9-18 * * 1-5`）、完善 `hourRangeWeekdays`（如 `0 9-18 * * 1-5`）分类；导出 `parseCronMinuteStepField` / `parseCronHourRangeField` / `parseCronWeekdayField`。
-- `cron-helpers`：`formatDisplayOnlyCronLabel` 输出自然语言，例如「周一至周五 9:00 上午至6:00 下午 每 10 分钟」。
-- i18n：`hourRangeOnWeekdays`、`minuteStepHourRangeOnWeekdays`（四语言）；仍保留 `cronExpression` 作无法解析时的兜底。
-
----
-
-## 2026-06-05 解决 Sidebar 搜索框 merge 冲突并完成 release-610 合并
-
-### 提交
-
-- commit：`78400a8a`（merge commit）
-- 冲突文件：`src/components/layout/Sidebar.tsx`（搜索框 hybrid 方案）
-- 测试：`sidebar-navigation`、`sidebar-workspaces`、`main-layout` 共 71 项通过
-
-### 改动说明
-
-- 搜索框：保留 `sidebarSearchInputRef`、overlay 占位 `(⌘/Ctrl+F)`；吸收 `--yonclaw-sidebar-search-surface`、`focus-within` 描边、清除按钮。
-- 测试：更新暗色样式/token 断言、改用 `searchbox` 角色定位；802 分组头不再展示数量徽章；pending 会话与 YCDesign Avatar 断言对齐实现。
-
----
-
-## 2026-06-05 补回 merge release-610 遗漏的 RightSidebar 右栏逻辑
-
-### 提交
-
-- commit：`48d301a9`
-- message：`fix(layout): 补回 merge release-610 遗漏的 RightSidebar 右栏逻辑`
-- 分支：`feature-610-changeSidebarUI` → `origin/feature-610-changeSidebarUI`
-
-### 改动说明
-
-- `MainLayout.tsx`：补 `RightSidebar` import、`RightSidebarToggleIcon`、store 订阅；`previewPanelActive` 时渲染预览容器，否则渲染 `RightSidebar`。
-- `AgentMarket/index.tsx`：删除合并遗留的多余 `AgentAvatar` import。
-- 测试：`main-layout.test.tsx` 覆盖无预览时显示 RightSidebar；`sidebar-workspaces.test.tsx` mock 补全 `rightSidebarCollapsed`、`pinnedAgentIds` 等。
-- 文档：新增 `docs/conventions/merge-release-610-conflict-audit.md` 记录冲突解决遗漏清单。
-
----
-
-## 2026-06-05 知识库 webview 白屏修复
-
-### 原因
-
-- `electron/main/index.ts` 的 `attachPreviewWebviewGuards` 在 `will-attach-webview` 中拦截未注册 partition 的 webview；仅 `about:blank`、Gateway Control UI 或带 `yonclaw-preview-*` partition 的预览 URL 可挂载。
-- 知识库页最初裸挂 `<webview src="https://www.baidu.com">`，主进程日志为 `Blocked unregistered webview`，guest 未创建导致白屏。
+### 问题
+`packages/openclaw-webview-agent/index.ts` 在 dispatch 成功且存在 `innerPayload` 时，误用未声明变量 `action` 调用 `summarizePageActionPayload`，导致 `ReferenceError: action is not defined`，模型侧看到工具报错。
 
 ### 修复
+- 改为 `summarizePageActionPayload(String(params.action), innerPayload)`
+- 新增单测覆盖 nested dispatch payload（`agent:cockpit-create-prepare`）成功摘要路径
 
-- `KnowledgeBase/index.tsx`：使用 `buildPreviewPartition('external', ...)` + `data-preview-mode`，与聊天 URL 预览同一安全链路。
 
----
+### 需求
+`yonbip-ec-file-fe` / `iuap-ap-workbenchui-fe` 顶层静态 import 在联邦缺失或组件抛错时会整页白屏。
 
-## 2026-06-06 侧边栏智能体头跳转新建会话并预选智能体
+### 实现
+- 新增 `createSafeLazyRemote`：React.lazy + Suspense + ErrorBoundary + loadKey 可重试
+- 新增 `lib/remote/modules.tsx` 集中导出 `EmbeddedKnowledge` / `CockpitWorkbenchApp`
+- 改造 Cockpit、AgentBridgeDemo、KnowledgeBase、KnowledgeBasePickerDialog
+- i18n 增加 `remoteModule.loading|loadFailed|loadFailedHint|retry`
 
-### 改动说明
+## 2026-07-14 knowledge-base bootstrap 增加 onlySelectDir
 
-- 点击侧边栏智能体头 → 路由 state 透传 `preferredAgentId` → Chat 页 `newSession()` → 输入框下拉预选对应智能体；列表无该 ID 时兜底 `main`（YonClaw）。
-- 新增 `src/pages/Chat/composer-agent-selection.ts`：`resolveComposerAgentId` 统一兜底逻辑。
-- `SidebarAgentHeaderItem`：整行可点击（`cursor: pointer`），右侧菜单/置顶/展开仍 `stopPropagation`。
-- `ChatInput`：新增 `preferredEmptySessionAgentId` / `preferredEmptySessionAgentNonce` props，异步 agent 列表加载后仍会重算选中项。
-- 测试：`composer-agent-selection.test.ts`、sidebar-navigation、chat-input 各补用例。
+- `packages/agent-bridge-core/src/knowledge-base.ts`：类型与 `buildKnowledgeBaseHostSelectionState` 写死 `onlySelectDir: false`
+- 对齐 yonclaw1.0；随 BOOTSTRAP / STATE 下发
 
----
+## 2026-07-14 knowledge-base bootstrap 增加 canSelectDir
 
-## 2026-06-06 取消置顶后会话按时间排序
+- `packages/agent-bridge-core/src/knowledge-base.ts`：类型与 `buildKnowledgeBaseHostSelectionState` 写死 `canSelectDir: true`
+- 对齐 yonclaw1.0；BOOTSTRAP / STATE 经 `use-knowledge-base-host` 自动带上
 
-### 改动说明
+## 2026-07-15 驾驶舱上下/左右布局切换保留输入草稿
 
-- 移除 `lastUnpinnedSessionKey` 临时排序标记及 `clearLastUnpinnedSessionKey` action。
-- `sortSidebarSessionsWithPins` 非置顶区统一按活动时间降序，取消置顶后不再固定排在非置顶区第一项。
-- 涉及：`sidebar-session-pin-order.ts`、`sidebar-ui.ts`、`Sidebar.tsx` 及 4 个测试 mock 清理。
+### 根因
+`WebviewSessionWorkbench` 在 `sessionOpen` 切换时于底部 Dock 与侧栏会话各挂一套 `ChatComposer`，本地 input 随卸载丢失；`keepSessionMounted` 时还会双挂导致 ref 错乱。
 
----
-
-## 2026-06-05 知识库侧栏菜单与子浏览器
-
-### 改动说明
-
-- 新增 `src/pages/KnowledgeBase/index.tsx`：独立页面，右侧主内容区嵌入 Electron `<webview>`，默认打开 `https://www.baidu.com`（`KNOWLEDGE_BASE_DEFAULT_URL` 常量便于后续替换）。
-- `Sidebar.tsx`：在技能中心与智能体市场之间新增「知识库」导航项（`BookOpen` 图标，路由 `/knowledge-base`）。
-- `App.tsx`：注册 `/knowledge-base` 路由。
-- i18n：`sidebar.knowledgeBase` 四语言文案（zh / en / zh-TW / ja）。
-
----
-
-## 2026-06-05 侧栏通道会话图标
-
-### 改动说明
-
-- MasterGo `744:81782` 导出微信/友空间侧栏图标：`sidebar-wechat.svg`、`sidebar-zhiyou.svg`。
-- 新增 `channel-type-normalize.ts`、`sidebar-session-channel.ts`、`ChannelTypeIcon.tsx`、`sidebar-session-left-icon.tsx`：注册表驱动通道图标，不写死 channelType 分支。
-- 抽取 `map-indexed-sidebar-session.ts`，`Sidebar` 与 `SidebarSearchDialog` 共用索引会话映射（含 `channelType`/`sourceKind`）。
-- `SidebarSessionItem` 通过 `leftIcon` 展示通道图标；运行中仍显示 spinner。
-- 测试：`channel-type-normalize`、`sidebar-session-channel`、`sidebar-session-left-icon`。
-
----
-
-## 2026-06-05 定时任务标题与会话图标
-
-### 改动说明
-
-- `session-display-title.ts`：Cron 会话标题去掉 `【定时】` 前缀，仅保留任务标题本体（保留原有清洗与截断逻辑）。
-- 接入 MasterGo `mastergo://getd2c/189284485329449-747-016031` 图标，新建 `src/assets/sidebar/cronSessionIcon.tsx`。
-- `sidebar-session-left-icon.tsx`：左侧图标优先级改为 `spinner > cron > channel > 默认`，侧栏列表与搜索弹窗统一生效。
-- 测试更新：`session-display-title.test.ts`、`sidebar-workspaces.test.tsx`、`sidebar-session-left-icon.test.tsx`。
-
----
-
-## 2026-06-05 Sidebar 搜索弹窗键盘交互
-
-### 改动说明
-
-- `SidebarSearchDialog.tsx` 新增会话键盘导航：按 `↑/↓` 切换会话高亮，按 `Enter` 选中当前高亮会话，行为与鼠标点击一致。
-- 会话高亮逻辑使用“当前选中 key + 结果列表兜底首项”策略，保证筛选结果变化后仍有稳定选中项。
-- 搜索弹窗底部新增灰色提示行：`↑↓ 移动光标  ↵ 选择条目`，对齐设计稿交互说明。
-- 回归验证：`tests/unit/sidebar-workspaces.test.tsx` 通过（31/31）。
-
----
-
-## 2026-06-05 恢复侧栏通道图标与重构 UI
-
-### 改动说明
-
-- 从 `cc29e82f` 恢复 `Sidebar.tsx`：重新接入 `SidebarSessionItem`、`SidebarAgentHeaderItem`、`resolveSidebarSessionLeftIcon` 等通道/icon 逻辑。
-- 同步 `release-610` 主题 token：`Sidebar.tsx`、`SidebarAgentHeaderItem.tsx`、`SidebarSessionRowBase.tsx` 中暗黑模式硬编码色替换为 `--yonclaw-*` 变量。
-- 根因：`35ced1a8`（yumiaob 合 release-610-ui）覆盖侧栏改造，`a67a886c` 合回 feature 时再次带入旧版。
-- 测试：`sidebar-workspaces`、`sidebar-session-left-icon` 通过（36/36）。
-
----
-
-## 2026-06-05 恢复右侧智能体详情入口
-
-### 改动说明
-
-- 从 `cc29e82f` 恢复 `MainLayout.tsx`：`RightSidebarToggleIcon`、`right-sidebar-toggle` 按钮、`RightSidebar` 面板渲染、`isOpenedChatSession` 条件展示逻辑。
-- 合并 `release-610` 主题 token（`--yonclaw-*` 变量、按路由区分主内容区背景）。
-- 会话中右上角图标：仅在 `isChatRoute && openedChatSession && rightSidebarCollapsed` 时显示，点击展开智能体详情侧栏。
-- 测试：`main-layout.test.tsx`（14/14）、`sidebar-workspaces`、`sidebar-session-left-icon` 通过（50/50）。
-
----
-
-## 2026-06-05 新建任务 hover 快捷键提示
-
-### 改动说明
-
-- `NavItem` 新增 `hoverShortcutHint`；「新建任务」hover 时右侧显示 `(⌘+K）` / `(Ctrl+K）`，样式与搜索框 `(⌘+F）` 一致。
-
----
-
-## 2026-06-05 侧栏分割线宽度统一
-
-### 改动说明
-
-- 抽出 `SIDEBAR_SECTION_DIVIDER_LINE_CLASS`（`mx-[15px] border-t`），菜单分割线与智能体分组分割线共用同一宽度与颜色。
-
----
-
-## 2026-06-05 侧栏 SidebarRowSurface 统一行壳
-
-### 改动说明
-
-- 新增 `SidebarRowSurface`：顶栏菜单 / 智能体头 / 会话行 / 展开更多共用同一 grid 行壳（`grid-cols-[24px_minmax(0,1fr)_auto]` + `px-[10px]`）。
-- 展开态搜索 + 菜单 + 任务列表包进唯一 `SIDEBAR_BODY_GUTTER_CLASS`（`px-[3px]`），消除多层 gutter 叠加。
-- 新增 `tests/unit/sidebar-row-surface-alignment.test.ts` 锁定行壳与 gutter 约定。
-
----
-
-## 2026-06-05 侧栏图标列与顶栏菜单纵向对齐
-
-### 改动说明
-
-- 展开态将顶栏菜单 + 任务列表包进同一 `SIDEBAR_TASK_LIST_GUTTER_CLASS` 容器，去掉列表区重复 `px-[3px]`。
-- 抽出 `SIDEBAR_ROW_SURFACE_BASE_CLASS`，顶栏 NavItem / 智能体头 / 会话行 / 展开更多共用同一行壳（`w-full` + `px-[10px]` + `border-transparent`）。
-- 图标槽改为 `justify-start` 左对齐，顶栏菜单也改用 `SIDEBAR_ROW_ICON_SLOT_CLASS`，避免 14px/12px/24px 图标因居中产生阶梯偏移。
-
----
-
-## 2026-06-05 侧栏智能体/会话 hover 宽度对齐
-
-### 改动说明
-
-- 根因：任务列表容器已有 `px-[3px]`，智能体头 `SidebarAgentHeaderItem` 外层又叠了一层 `px-[3px]`，导致 hover 灰底比会话行窄 6px。
-- 移除智能体头外层重复 gutter；抽出 `SIDEBAR_TASK_LIST_GUTTER_CLASS` / `SIDEBAR_ROW_HOVER_SURFACE_PADDING_CLASS` 统一列表留白与 hover 块内边距。
-- 「展开更多」行改为与会话行相同结构（外层仅垂直间距，内层按钮承担 `px-[10px]`）。
-
----
-
-## 2026-06-05 侧栏 UI 三项修复
-
-### 改动说明
-
-1. **菜单图标裁切**：顶栏 NavItem 图标槽与四个导航 SVG 增加 `overflow-visible`（`SIDEBAR_NAV_ICON_SIZE_CLASS`），避免贴 viewBox 边缘的描边在右下被裁切。
-2. **智能体与会话对齐**：新增 `SIDEBAR_ROW_ICON_SLOT_CLASS`（24×24 图标槽），智能体头、会话行、展开更多共用，使文案左缘对齐。
-3. **收起隐藏分割线**：仅当前一智能体分组为展开态时才渲染组间 `agent-divider`；收起后不再显示其下方分割线。
-
-### 涉及文件
-
-- `src/lib/sidebar-agent-layout.ts`
-- `src/assets/sidebar/mastergo-nav-icons-data.ts`、四个 nav icon 组件
-- `Sidebar.tsx`、`SidebarSessionRowBase.tsx`、`SidebarAgentHeaderItem.tsx`、`SidebarAgentPanel.tsx`
-- `tests/unit/sidebar-navigation.test.tsx`（新增收起分割线用例）
-
----
-
-## 2026-06-09 修复 Profile 冷启动 Gateway stopped 导致加载页卡死
-
-**问题**：`blockReason=gateway_startup_blocking` 且 `gatewayState=stopped`，加载页等待 Gateway running 但从未触发 start。
-
-**修复**：
-- `App.tsx`：Profile 恢复加载阶段若 Gateway 为 `stopped`，主动调用 `useGatewayStore.start()`
-- `startup-loading.ts`：新增 `resolveStartupLoadingGateSnapshot` 诊断快照
-- 测试：补充 gateway start 补救用例，mock CapabilityCenter/ComingSoon
-
----
+### 修复
+- Workbench 提升草稿并通过 `onInputValueChange` / 包装 `setValue` 同步
+- 布局切换 `useLayoutEffect` 回填活跃 Composer
+- 会话面板 `showComposer={sessionOpen}`，始终只挂载一个输入框
+
+## 2026-07-14 WebviewDemo 增加预填测试按钮
+
+- `html/webviewDemo/index.html` 新增「预填输入框（不发送）」按钮
+- 触发 `agent:webview:send-prompt` + `autoSend: false`，用于验收本次预填改动
+
+## 2026-07-14 send-prompt 增加 autoSend 预填参数
+
+### 需求
+页面通过 `agent:webview:send-prompt` 可将文案放入宿主输入框，而不立即发送。
+
+### 实现
+- 协议新增 `autoSend?: boolean`（默认 true）及 `resolveWebViewSendPromptAutoSend`
+- `ResolvedSendPromptEvent` / route / generic actions 透传 `autoSend`
+- Cockpit / WebviewDemo：`autoSend=false` → `setValue` + focus + 可选开浮层
+- Chat WebView runtime：经 `fillComposer` 回调写入 ChatInput
+- 文档与单测已同步
+
+### 页面用法
+```js
+emit("agent:webview:send-prompt", {
+  prompt: "请帮我分析当前页的关键指标。",
+  autoSend: false,
+  openPanel: true
+});
+```
+
+## send-prompt autoSend 预填对齐 yonclaw1.0
+
+- packages/agent-bridge-core: WebViewAgentSendPromptPayload.autoSend + resolveWebViewSendPromptAutoSend
+- packages/agent-bridge-host: ResolvedSendPromptEvent / route / generic-actions 透传 autoSend
+- apps/claw-web Cockpit: autoSend=false 时 pending 预填 Composer（兼容分屏切换挂载）
+- CockpitChatSession: 支持父级 composerRef
+
+## 2026-07-14 composer generating diagnostics
+- 新增 src/lib/composer-generating-diagnostics.ts：判定「可见回复但仍 UI 生成/锁输入」并写入 flow-trace
+- 新增 src/hooks/use-composer-generating-diagnostics.ts：Chat / Cockpit 共用 hook
+- 接入 src/pages/Chat/index.tsx、useChatConversationModel.ts
+- 增强 chat.abort / stuck recovery / stuck finalize 的 flow-trace 字段
+- 单测 tests/unit/composer-generating-diagnostics.test.ts
+
+## 2026-07-14 knowledge-base bootstrap canSelectDir
+- shared/knowledge-base.ts: KnowledgeBaseBootstrapKnowledgeBaseSection 新增 canSelectDir
+- use-knowledge-base-bridge.ts: buildKnowledgeBaseHostSelectionState 写死 canSelectDir: true（随 BOOTSTRAP / STATE 下发）
+- 单测与 selection-bridge / 二方包说明文档已同步
+
+## 2026-07-14 修复驾驶舱多语 UID 冲突
+
+- `apps/claw-web/src/i18n/source/common.ts`：`sidebar.cockpit` 与 `cockpit.*` 原先误复用 `actions.load~skip` 的 UID（0458010B~04580112），平台词条显示为「加载」等错误文案
+- 改为中文原文直出，待多语抽取工具分配新 UID；`actions.*` 保持原 UID 不动
+
+## 2026-07-14 cursor-capability-check
+- 触发：.needs-capability-update（changed_file=.cursorlog，2026-07-14 20:08:23）
+- 重写 .cursor/cursor-capabilities.md：commands 5 / rules 10(always 5) / skills 7 / agents 0 / hooks 2 脚本 / scripts 若干
+- 清理过时条目（飞书/TAPD commands、agents、旧 skills）；标注同步脚本与 README 漂移
+- 已删除 .needs-capability-update
+
+## 2026-07-14 knowledge-base bootstrap onlySelectDir
+- bootstrap/state knowledgeBase 新增 onlySelectDir，写死为 false（只能选文件夹；默认关闭）
+- 同步类型、单测与桥接文档
+
+## 2026-07-15 修复驾驶舱停止后清除按钮一直禁用
+
+### 原因
+- 清除按钮依赖 `isSessionIdle`（store 的 `activeRunId`/`sending` 等）
+- 输入框停止后靠本地 `abortedReplyRun` 立即解锁
+- abort 后 SSE `commitStreamRunId` 仍会写回 `activeRunId` 并清除 abort 屏障，造成「能输入但不能清除」
+
+### 改动
+- 新增 `lib/chat-stream-run-commit.ts`：abort 后拒绝复活 runId
+- `stores/chat.ts`：`commitStreamRunId` 与 send 成功路径接入拒绝逻辑
+- `resetCockpitSessionHistory`：先 abort 再判 idle
+- `use-cockpit-session-recovery`：显式订阅 run 状态驱动 `isSessionIdle`
+- 补充单测
+
+## 驾驶舱上下/左右布局切换保留 Composer 草稿
+
+- ChatInput: 新增 onInputValueChange
+- CockpitChatSession: composerDraftRef + callback ref 包装 + sessionOpen useLayoutEffect 回填
+- ChatSessionSurface: showComposer，关闭会话栏时不挂载 Composer，避免与 Dock 双实例抢 ref
+
+
+## cursor-capability-check（2026-07-15）
+
+- 触发：`.needs-capability-update`（changed_at=2026-07-15 17:42:15）+ 用户确认「运行」
+- 更新：重写 `.cursor/cursor-capabilities.md`
+- 清理：删除 `.cursor/.needs-capability-update`
+- 扫描结果：5 commands / 10 rules（5 alwaysApply）/ 7 skills / 0 agents / 2 hooks / 4 scripts
+- 重叠：README 与 after-file-edit-sync 文档漂移等 3 处（较上次无新增）
+## 2026-07-15 18:10
+### 用户问题
+1 + 1
+### 处理说明
+简单算术提问，无需代码改动，直接给出答案 2。
+## 2026-07-16 20:25
+- 修改 apps/claw-web/tailwind.config.cjs：关闭 corePlugins.preflight
+- 原因：cssSandbox 前缀 .YonclawCloudWeb 抬高 Preflight 标签选择器优先级，压过二方包 CSS Module
+## 2026-07-16 20:34
+- 新增 apps/claw-web/scripts/postcss-sandbox-where-type.cjs：将 .YonclawCloudWeb + 标签选择器降为 :where(.YonclawCloudWeb)
+- 修改 apps/claw-web/yds.config.js：webpack environment 钩子在 TNS prefixwrap 之后追加该 PostCSS 插件
+- 目的：保留 Tailwind Preflight（主站 UI），同时避免压过二方包 CSS Module

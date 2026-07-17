@@ -1,9 +1,22 @@
 {
   "version": 1,
   "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/session-change-tracker.sh sessionStart"
+      }
+    ],
     "afterFileEdit": [
       {
         "command": ".cursor/hooks/after-file-edit-sync.sh"
+      },
+      {
+        "command": ".cursor/hooks/session-change-tracker.sh afterFileEdit"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/session-change-tracker.sh stop"
       }
     ]
   }
