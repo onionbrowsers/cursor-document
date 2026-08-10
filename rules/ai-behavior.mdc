@@ -19,6 +19,7 @@ alwaysApply: true
 - 首先逐步思考 - 用伪代码详细描述构建计划
 - 确认计划后再编写代码
 - 多需求澄清、大型改动的分步执行与验收指引，遵循 `development-workflow.mdc`
+- 根因归因、对外证据与「确认后再改」要求，遵循 `evidence-attribution.mdc`
 - 每次生成代码后，更新 `.cursor/.cursorlog` 记录生成的代码及解释
 - 学习当前代码内容和格式，根据已有风格给出内容
 

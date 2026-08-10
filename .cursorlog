@@ -1,140 +1,189 @@
+# Cursor Log
 
-## 2026-07-15 修复 webview_call_page_action 成功路径 ReferenceError
+## 2026-08-06
 
-### 问题
-`packages/openclaw-webview-agent/index.ts` 在 dispatch 成功且存在 `innerPayload` 时，误用未声明变量 `action` 调用 `summarizePageActionPayload`，导致 `ReferenceError: action is not defined`，模型侧看到工具报错。
+### Cursor ACP Client 试用 Demo
 
-### 修复
-- 改为 `summarizePageActionPayload(String(params.action), innerPayload)`
-- 新增单测覆盖 nested dispatch payload（`agent:cockpit-create-prepare`）成功摘要路径
+新增 Dev 开关页 `/cursor-acp-demo`：YonClaw 作为 ACP Client，spawn 本机 `agent acp`，
+JSON-RPC 握手后可发 prompt 并流式展示回复。用于理解 Agent Client Protocol。
 
+- `electron/main/cursor-acp/client.ts`
+- `electron/api/routes/cursor-acp.ts`
+- `src/pages/CursorAcpDemo/`
+- `docs/integrations/cursor-acp-demo.md`
 
-### 需求
-`yonbip-ec-file-fe` / `iuap-ap-workbenchui-fe` 顶层静态 import 在联邦缺失或组件抛错时会整页白屏。
+### ACP Demo：新建 ACP 通路接入 YonClaw App（只复用会话）
 
-### 实现
-- 新增 `createSafeLazyRemote`：React.lazy + Suspense + ErrorBoundary + loadKey 可重试
-- 新增 `lib/remote/modules.tsx` 集中导出 `EmbeddedKnowledge` / `CockpitWorkbenchApp`
-- 改造 Cockpit、AgentBridgeDemo、KnowledgeBase、KnowledgeBasePickerDialog
-- i18n 增加 `remoteModule.loading|loadFailed|loadFailedHint|retry`
+按计划落地完整控页链路，除对话会话外不复用 webview_*/browser-agent：
 
-## 2026-07-14 knowledge-base bootstrap 增加 onlySelectDir
+- `html/acpDemo/`：业务页 + ACP Surface（`acp-page-runtime.js`）
+- `shared/acp-demo-protocol.ts` + `electron/preload/acp-demo-bridge.ts`
+- `electron/main/acp-demo/registry.ts` + `/api/acp-demo/*`
+- 插件 `packages/openclaw-acp-demo`（`acp_get_manifest` / `acp_get_state` / `acp_execute_command`）
+- App 宿主 `src/pages/AcpDemo` + 路由 `/acp-demo` + DevPanel/侧边栏开关
 
-- `packages/agent-bridge-core/src/knowledge-base.ts`：类型与 `buildKnowledgeBaseHostSelectionState` 写死 `onlySelectDir: false`
-- 对齐 yonclaw1.0；随 BOOTSTRAP / STATE 下发
+### ACP Demo：waiting-runtime 根因（日志证据）
 
-## 2026-07-14 knowledge-base bootstrap 增加 canSelectDir
+用户日志（renderer）：
+- `hasHost: true` → ACP preload / `__yonclawAcpHost` 已通
+- `hasRuntime: false` + 页状态 `waiting-runtime` → `acp-page-runtime.js` 未执行
 
-- `packages/agent-bridge-core/src/knowledge-base.ts`：类型与 `buildKnowledgeBaseHostSelectionState` 写死 `canSelectDir: true`
-- 对齐 yonclaw1.0；BOOTSTRAP / STATE 经 `use-knowledge-base-host` 自动带上
+根因：`<script src="./acp-page-runtime.js">` 相对请求不带 Host API `?token=`，返回 401。
 
-## 2026-07-15 驾驶舱上下/左右布局切换保留输入草稿
+修复：与 `yonclawAgentDemo` 相同，动态创建 script 并复制 `window.location.search`。
 
-### 根因
-`WebviewSessionWorkbench` 在 `sessionOpen` 切换时于底部 Dock 与侧栏会话各挂一套 `ChatComposer`，本地 input 随卸载丢失；`keepSessionMounted` 时还会双挂导致 ref 错乱。
+### ACP Demo：诊断日志 + partition 兜底挂 preload
 
-### 修复
-- Workbench 提升草稿并通过 `onInputValueChange` / 包装 `setValue` 同步
-- 布局切换 `useLayoutEffect` 回填活跃 Composer
-- 会话面板 `showComposer={sessionOpen}`，始终只挂载一个输入框
+现象：业务页长期 `waiting` / `session —`，`acp_get_manifest` 504。
 
-## 2026-07-14 WebviewDemo 增加预填测试按钮
+改动：
+- will-attach 同时用 URL + partition 识别 ACP，避免误挂 bip preload
+- preload-boot / from-page / guest.send / executeJavaScript / page probe 全链路日志
+- 页状态拆成 `waiting-host` / `no-host` / `waiting-config` / `ready`，宿主标题展示 probe
 
-- `html/webviewDemo/index.html` 新增「预填输入框（不发送）」按钮
-- 触发 `agent:webview:send-prompt` + `autoSend: false`，用于验收本次预填改动
+### ACP Demo：修复 manifest 超时
 
-## 2026-07-14 send-prompt 增加 autoSend 预填参数
+根因：`contextIsolation` 下 preload 与页面用 `postMessage` 不可靠，且 bind 前 `ready` 被丢弃。
 
-### 需求
-页面通过 `agent:webview:send-prompt` 可将文案放入宿主输入框，而不立即发送。
+修复：
+- preload 改为 `contextBridge` 暴露 `__yonclawAcpHost`
+- 页侧走 `postToHost/subscribe`
+- Main 缓冲 unbound 消息；`guest.send` + `executeJavaScript` 双通道下发
+- `get_manifest` 优先返回已缓存 manifest
 
-### 实现
-- 协议新增 `autoSend?: boolean`（默认 true）及 `resolveWebViewSendPromptAutoSend`
-- `ResolvedSendPromptEvent` / route / generic actions 透传 `autoSend`
-- Cockpit / WebviewDemo：`autoSend=false` → `setValue` + focus + 可选开浮层
-- Chat WebView runtime：经 `fillComposer` 回调写入 ChatInput
-- 文档与单测已同步
+## 2026-07-28
 
-### 页面用法
-```js
-emit("agent:webview:send-prompt", {
-  prompt: "请帮我分析当前页的关键指标。",
-  autoSend: false,
-  openPanel: true
-});
-```
+### Phase 1：沙箱 dispatch relay 原子 claim
 
-## send-prompt autoSend 预填对齐 yonclaw1.0
+在 `yonclaw1.0` 将 `GET /pending-dispatch` 从 peek 改为 claim，修复 Web 多开 / 移动端同沙箱时同一 relay 被多次执行导致驾驶舱双份创建的问题。
 
-- packages/agent-bridge-core: WebViewAgentSendPromptPayload.autoSend + resolveWebViewSendPromptAutoSend
-- packages/agent-bridge-host: ResolvedSendPromptEvent / route / generic-actions 透传 autoSend
-- apps/claw-web Cockpit: autoSend=false 时 pending 预填 Composer（兼容分屏切换挂载）
-- CockpitChatSession: 支持父级 composerRef
+改动要点：
+- `claimWebviewDispatchRelay(ownerSessionKey, consumerId?)`：首个领取方独占；busy 对其他端返回 pending:false；lease 过期可重领
+- 路由兼容旧客户端（可不传 clientInstanceId，匿名 consumer 仍单次 claim）
+- chain 日志新增 claimed/busy；保留 hit 兼容
+- 新增单测 `tests/unit/dispatch-relay-store-claim.test.ts`
 
-## 2026-07-14 composer generating diagnostics
-- 新增 src/lib/composer-generating-diagnostics.ts：判定「可见回复但仍 UI 生成/锁输入」并写入 flow-trace
-- 新增 src/hooks/use-composer-generating-diagnostics.ts：Chat / Cockpit 共用 hook
-- 接入 src/pages/Chat/index.tsx、useChatConversationModel.ts
-- 增强 chat.abort / stuck recovery / stuck finalize 的 flow-trace 字段
-- 单测 tests/unit/composer-generating-diagnostics.test.ts
+方案文档：`.cursor/plans/sandbox-dispatch-relay-claim.md`
 
-## 2026-07-14 knowledge-base bootstrap canSelectDir
-- shared/knowledge-base.ts: KnowledgeBaseBootstrapKnowledgeBaseSection 新增 canSelectDir
-- use-knowledge-base-bridge.ts: buildKnowledgeBaseHostSelectionState 写死 canSelectDir: true（随 BOOTSTRAP / STATE 下发）
-- 单测与 selection-bridge / 二方包说明文档已同步
+### Phase 2：回退会话预览宽屏与自动展开
 
-## 2026-07-14 修复驾驶舱多语 UID 冲突
+按会话记录核对 `qiyu` 引入的预览交互后，在 `src/pages/Chat/useChatPreviewController.ts` 回退两类行为：
 
-- `apps/claw-web/src/i18n/source/common.ts`：`sidebar.cockpit` 与 `cockpit.*` 原先误复用 `actions.load~skip` 的 UID（0458010B~04580112），平台词条显示为「加载」等错误文案
-- 改为中文原文直出，待多语抽取工具分配新 UID；`actions.*` 保持原 UID 不动
+- 移除 BIP / 可信页面打开时强制收起左侧栏并把预览区拉到 `1200px` 的宽屏处理
+- 移除基于消息文案与工具流的自动展开，仅保留“后台准备预览内容”，用户手动打开时再显示
+- 保留会话级预览缓存、手动打开/关闭、以及已打开状态恢复，不影响正常手动预览
 
-## 2026-07-14 cursor-capability-check
-- 触发：.needs-capability-update（changed_file=.cursorlog，2026-07-14 20:08:23）
-- 重写 .cursor/cursor-capabilities.md：commands 5 / rules 10(always 5) / skills 7 / agents 0 / hooks 2 脚本 / scripts 若干
-- 清理过时条目（飞书/TAPD commands、agents、旧 skills）；标注同步脚本与 README 漂移
-- 已删除 .needs-capability-update
+### Phase 3：恢复自动展开但保持窄屏
 
-## 2026-07-14 knowledge-base bootstrap onlySelectDir
-- bootstrap/state knowledgeBase 新增 onlySelectDir，写死为 false（只能选文件夹；默认关闭）
-- 同步类型、单测与桥接文档
+根据会话记录与 `flow-trace` 判断，`qiyu` 的改动确实影响了自动打开时机：旧链路是先隐藏挂载预览，再依赖消息语义延迟展开，导致“文案已说打开，但 UI 仍未展开”的时序问题。
 
-## 2026-07-15 修复驾驶舱停止后清除按钮一直禁用
+本轮在 `src/pages/Chat/useChatPreviewController.ts` 恢复自动展开能力，但不恢复宽屏处理：
 
-### 原因
-- 清除按钮依赖 `isSessionIdle`（store 的 `activeRunId`/`sending` 等）
-- 输入框停止后靠本地 `abortedReplyRun` 立即解锁
-- abort 后 SSE `commitStreamRunId` 仍会写回 `activeRunId` 并清除 abort 屏障，造成「能输入但不能清除」
+- `open_page` / `browser_navigate*` / `open_local_file` 重新支持基于消息语义自动展开右侧预览
+- 保留当前窄屏布局，不再强制收起左侧栏，也不再把预览拉到 `1200px`
+- Host 导航事件与流式工具引导链路同步恢复自动展开判定
 
-### 改动
-- 新增 `lib/chat-stream-run-commit.ts`：abort 后拒绝复活 runId
-- `stores/chat.ts`：`commitStreamRunId` 与 send 成功路径接入拒绝逻辑
-- `resetCockpitSessionHistory`：先 abort 再判 idle
-- `use-cockpit-session-recovery`：显式订阅 run 状态驱动 `isSessionIdle`
-- 补充单测
+### Phase 4：去掉「默认关闭 / 文案确认才展开」规则
 
-## 驾驶舱上下/左右布局切换保留 Composer 草稿
+按产品要求移除 qiyu 引入的语义门控：
 
-- ChatInput: 新增 onInputValueChange
-- CockpitChatSession: composerDraftRef + callback ref 包装 + sessionOpen useLayoutEffect 回填
-- ChatSessionSurface: showComposer，关闭会话栏时不挂载 Composer，避免与 Dock 双实例抢 ref
+- 本轮生成文档、网页、BIP、本地产物后默认自动展开右侧预览
+- 仅保留「用户明确禁止打开」与「切回历史会话不重弹」
+- 同步更新 `docs/preview-area-spec.md`、`docs/bip-preview.md`、业务规则与三份 README
+- 控制器改为以 `autoPreviewRunSessionRef` 识别本轮，不再依赖 `shouldAutoExpandPreviewFromMessages` 作为展开开关
 
+### Phase 5：切回会话有产物则重新自动打开
 
-## cursor-capability-check（2026-07-15）
+按产品要求调整「主动收起」跨会话记忆：
 
-- 触发：`.needs-capability-update`（changed_at=2026-07-15 17:42:15）+ 用户确认「运行」
-- 更新：重写 `.cursor/cursor-capabilities.md`
-- 清理：删除 `.cursor/.needs-capability-update`
-- 扫描结果：5 commands / 10 rules（5 alwaysApply）/ 7 skills / 0 agents / 2 hooks / 4 scripts
-- 重叠：README 与 after-file-edit-sync 文档漂移等 3 处（较上次无新增）
-## 2026-07-15 18:10
-### 用户问题
-1 + 1
-### 处理说明
-简单算术提问，无需代码改动，直接给出答案 2。
-## 2026-07-16 20:25
-- 修改 apps/claw-web/tailwind.config.cjs：关闭 corePlugins.preflight
-- 原因：cssSandbox 前缀 .YonclawCloudWeb 抬高 Preflight 标签选择器优先级，压过二方包 CSS Module
-## 2026-07-16 20:34
-- 新增 apps/claw-web/scripts/postcss-sandbox-where-type.cjs：将 .YonclawCloudWeb + 标签选择器降为 :where(.YonclawCloudWeb)
-- 修改 apps/claw-web/yds.config.js：webpack environment 钩子在 TNS prefixwrap 之后追加该 PostCSS 插件
-- 目的：保留 Tailwind Preflight（主站 UI），同时避免压过二方包 CSS Module
+- 同一会话内收起仍抑制历史消息重弹；切回该会话时清除收起记忆
+- 有产物记忆路径或消息可扫到产物时，强制重新打开产物预览（`artifactsOnly`，不连带重开 URL）
+- 团队会话仍需显式记忆路径才强制打开，避免历史扫一遍误弹
+- 同步 `preview-area-spec` / bip-preview / 业务规则与三份 README，并更新相关单测
+## 2026-07-28 git-commit-merge-mr
+- 提交 d8d26a5：feat(cockpit) 驾驶舱 isWeb + key 重挂载
+- 合并 feature/20260630 → feature-630-commonSocketPlan（无冲突）
+- MR !63：https://git.yyrd.com/yonclaw/iuap-yonclaw-cloud-fe/-/merge_requests/63
+## 2026-07-28 git-commit-merge-mr daily/20260727
+- 阶段一跳过（仅本地 .env.local / yds.config.js）
+- 合并 daily/20260727 → feature-630-commonSocketPlan（9488836，无冲突）
+- MR !64：https://git.yyrd.com/yonclaw/iuap-yonclaw-cloud-fe/-/merge_requests/64
+
+## 2026-07-29 合并冲突解决 release-720-bugfix → feature-fix-ui
+
+以 feature-fix-ui「本轮默认展开 + 切回重开产物」为主线，吸收 bugfix：
+- 保留当前会话 artifact pending（Cron 防空白）
+- 有记忆路径时 early return，避免扫历史盖住「最后查看」
+- reset 在有记忆路径/pending 时保持展开（防布局层后置 reset 收起）
+- 未迁入 bugfix 的 `applyBipPreviewLayout`（本分支无该子系统）
+- 单测 64 通过；merge commit `c6a02a857`
+
+## 2026-07-29 webview_call_page_action payload/args 收敛
+- packages/openclaw-webview-agent/index.ts：新增 resolvePageActionPayload；仅有 args(object) 时兜底为 payload 并返回 warning；payload/args 冲突则拒绝；更新 tool description 正反例
+- tests/unit/openclaw-webview-agent.test.ts：补充兜底、正常 payload、冲突拒绝 3 个用例（全绿）
+
+## 2026-07-29 修复驾驶舱 window.open 仍替换页内
+- 根因：`configurePreviewGuest` 的 `setWindowOpenHandler` 对可预览 URL 调用 `loadPreviewPopupInGuest`（同 guest 导航）
+- 修复（已精简）：仅主进程识别 `cockpit-driving-cabin` / `driving-cabin` 后走独立窗复用；删掉 renderer hook、popup-policy、partition util 及对应单测
+
+## 2026-07-29 Host API local-3891 透明反代
+- shared/local-3891-proxy.ts：前缀常量 `/api/local-3891` + 上游 env `YONCLAW_LOCAL_3891_UPSTREAM`（默认 127.0.0.1:3891）
+- electron/api/routes/local-3891-proxy.ts：剥前缀傻瓜转发（方法/query/body/Cookie 透传，改 Host）
+- electron/api/server.ts：公开白名单免 Host API token；豁免 JSON Content-Type
+- 注册：builtin-route-handlers、route-registry；更新 host-api-boundary.md
+- 单测：local-3891-proxy / host-api-server / route-registry 相关用例全绿
+## 2026-08-04 产物卡片对齐自动展开
+
+- 新增 `src/pages/Chat/artifacts/artifact-card-visibility.ts`：抽出与可见产物卡片一致的路径资格判断（tmp 临时落盘、实现脚本、legacy skills-output）。
+- `ChatMessage.tsx`：`filterVisibleArtifactCards` 改用共享路径判断。
+- `useChatPreviewController.ts`：Path 0 / 0.5 及 message-update 的 open_local_file 自动展开仅接受卡片合格路径，避免 `tmp/format_result.py` 误开预览。
+- 更新 `docs/preview-area-spec.md` 自动展开规则说明。
+- 测试：`tests/unit/artifact-card-visibility.test.ts`；`use-chat-preview-controller` 增补 format_result.py 不展开 / artifacts xlsx 仍展开。
+
+## 2026-08-05 去掉右侧预览 1200px 绝对上限
+
+- `src/stores/sidebar-ui.ts`：删除 `PREVIEW_PANEL_MAX_WIDTH`；`clampRightPanelWidth` 只保留最小宽 280px
+- `src/components/layout/main-layout-sizing.ts`：`maxRightPanelContentWidth` 改为可选；缺省仅按视口与对话区最小宽裁剪
+- `src/components/layout/MainLayout.tsx`：拖拽/布局不再传入 1200 绝对上限
+- 文档：`docs/preview-area-spec.md`、`docs/bip-preview.md`、三语 README、字体规范同步
+- 单测：放宽相关用例视口，并覆盖 >1200 仍可按视口预算拉宽
+## 2026-08-05 预览自动展开：过滤非产物 + 打开前存在性校验
+- artifact-card-visibility.ts: 扩展 SKILL.md/技能目录、tmp_*、data_model.md、非正式 artifacts JSON 过滤
+- useChatPreviewController: Path0/0.5/1/2 与流式 open_local_file 走资格过滤 + fs:exists；保留主文件选中；tryBootstrap await
+- ChatMessage 卡片与自动展开共用 isAutoOpenEligibleLocalArtifactPath
+- artifact-workspace.css: 错误文案 overflow-wrap
+- docs/preview-area-spec.md + 单测同步
+## 2026-08-05 按可见产物卡片对齐自动展开
+- 删除 data_model.md/tmp_*/JSON/SKILL.md 文件名黑名单
+- 抽出 filterVisibleArtifactCards / preview-only；新增 collectVisibleArtifactPathsForAutoOpen
+- Path0/0.5 与流式 open_local_file 仅展开有可见卡片的路径 + fs:exists
+- 纯 open_local_file 无 write 证据不自动开；保留会话 tmp/脚本/skills-output
+
+## 2026-08-05 14:22 驾驶舱 window.open 独立窗
+- 文件: electron/main/index.ts
+- 改动: configurePreviewGuest 识别驾驶舱 guest，window.open 走独立 BrowserWindow；内联 openOrReuseDirectUrlPreviewWindow（同 partition 复用）；Chat 预览仍 load-in-guest
+- 背景: 复做 2026-07-29 精简方案（原 commit f186826dd 中 popup 部分）
+
+## 2026-08-07 驾驶舱每次注入数据真实性隐藏约束
+- `src/lib/cockpit-prompt.ts`：新增 `COCKPIT_DATA_INTEGRITY_CONSTRAINT`，在 `buildCockpitPrompt` 中每次必注（不走 capability 指纹去重）
+- `src/pages/Cockpit/index.tsx`：WebView 未绑定 fallback 路径同样注入该隐藏文案
+- `tests/unit/cockpit-prompt.test.ts`：覆盖每次注入且 UI 不可见
+
+## 2026-08-07 afterPack 跳过不支持的本地语音目标
+- `scripts/prepare-voice-runtime.cjs`：导出 `isSupportedTarget` / `voiceRuntimeTarget`
+- `scripts/after-pack.cjs`：仅在 lock 支持的目标打包 voice-runtime + voice-model；`darwin-x64` 等跳过并打日志
+- `tests/unit/local-voice-contract.test.ts`：覆盖跳过逻辑与 x64 不支持断言
+- 背景：上游 SenseVoice 无 macOS Intel 预编译包，避免双架构 `package:mac:prod` 在 x64 失败
+## 2026-08-10 15:38
+- 更新计划文档：`/Users/mac/.cursor/plans/通用工作台壳_3538e8c4.plan.md`
+- 补充实现硬约束 H1–H8（承载配额、popup 三态、home 语义、agent/Surface 身份、CM6 保存、通信最小就绪、zoom 作用域、实施禁区）
+- 修正 A 抽取边界措辞；调整落地顺序与 todos（新增 freeze-hard-constraints）
+
+## 2026-08-10
+
+### plan-reviewer SubAgent + 闭环 Rule
+
+新增 Plan 审查 SubAgent 与主会话闭环约定（点名后自动再审，改 plan 前须用户确认）：
+
+- `agents/plan-reviewer.md`：readonly 审查员，输出 VERDICT PASS/FAIL
+- `rules/plan-reviewer-loop.mdc`：触发后审→问用户→改 plan→再审，最多 5 轮

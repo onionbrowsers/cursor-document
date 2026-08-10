@@ -1,0 +1,10 @@
+---
+description: Applies to all conversations to enforce global behavior.
+alwaysApply: true
+---
+
+# Global Directives
+
+- **Code Generation**: Write clean, modern, and type-safe code. Do not include boilerplate.
+- **Dependencies**: Never guess or install new npm packages unless explicitly requested. Use existing libraries in the project (e.g., use `fetch` instead of `axios`).
+- **Workflow**: If the goal is unclear, do not generate code. Ask for clarification first.
