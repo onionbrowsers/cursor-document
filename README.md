@@ -95,7 +95,11 @@ ln -s /path/to/cursor-document /path/to/project/.cursor
 如果只考虑个人本机多个项目共用同一套配置，可以使用全局 Skill `cursor-shared-config-link` 一键初始化。该 Skill 会调用本机脚本，将当前项目的 `.cursor` 软链接到 `~/.cursor/shared-config`：
 
 ```bash
-/Users/mac/.cursor/skills/cursor-shared-config-link/scripts/install-shared-cursor.sh "/path/to/project"
+# 优先用本仓库脚本（clone 后即可）
+~/.cursor/shared-config/scripts/install-shared-cursor.sh "/path/to/project"
+
+# 或全局 Skill 副本
+~/.cursor/skills/cursor-shared-config-link/scripts/install-shared-cursor.sh "/path/to/project"
 ```
 
 默认远程仓库为：
@@ -105,6 +109,8 @@ https://github.com/onionbrowsers/cursor-document.git
 ```
 
 初始化后，所有已接入项目都会指向同一份本机 `.cursor` 配置；在任意项目修改 `.cursor`，实际修改的都是同一个中央目录。
+
+脚本还会把 `agents/*.md` 软链到 `~/.cursor/agents/`，以便 Cursor 能注册自定义 SubAgent（整棵 `.cursor` 链到 shared-config 时，仅项目路径常无法进入 Task 枚举）。
 
 该方式适合个人单机开发，不适合团队协作。如果项目已有普通 `.cursor` 目录，脚本默认不会覆盖；确认需要替换时，可设置 `CURSOR_LINK_REPLACE=1` 后重试。
 

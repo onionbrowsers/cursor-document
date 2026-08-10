@@ -1,5 +1,13 @@
 # .cursor 同步脚本
 
+## install-shared-cursor.sh
+
+将业务项目的 `.cursor` 软链到本机中央目录（默认 `~/.cursor/shared-config`），并把中央 `agents/*.md` 再软链到 `~/.cursor/agents/`，供 Cursor 注册自定义 SubAgent。
+
+```bash
+./scripts/install-shared-cursor.sh "/path/to/project"
+```
+
 ## sync-cursor-to-document.sh
 
 将当前项目 `.cursor` 目录（**排除 `docs`**）同步到 `/Users/mac/companycode/cursor-document`，并在该仓库内 `git add`、`commit`、`push`。
